@@ -1,0 +1,72 @@
+{
+    "len1": 72.0,
+    "len2": 90.0,
+    "len3": 32.0,
+    "min_speed": 1.0,
+    "max_speed": 180.0,
+    "default_speed": 60.0,
+    "j0_min_deg": 0.0,
+    "j0_max_deg": 180.0,
+    "j0_home_deg": 90.0,
+    "j0_speed_deg_s": 60.0,
+    "j0_channel": 0,
+    "j0_min_pulse_us": 500,
+    "j0_max_pulse_us": 2500,
+    "j1_min_deg": 15.0,
+    "j1_max_deg": 165.0,
+    "j1_home_deg": 90.0,
+    "j1_speed_deg_s": 40.0,
+    "j1_channel": 1,
+    "j1_min_pulse_us": 600,
+    "j1_max_pulse_us": 2400,
+    "j2_min_deg": 15.0,
+    "j2_max_deg": 165.0,
+    "j2_home_deg": 90.0,
+    "j2_speed_deg_s": 40.0,
+    "j2_channel": 2,
+    "j2_min_pulse_us": 600,
+    "j2_max_pulse_us": 2400,
+    "j3_min_deg": 0.0,
+    "j3_max_deg": 180.0,
+    "j3_home_deg": 90.0,
+    "j3_speed_deg_s": 70.0,
+    "j3_channel": 3,
+    "j3_min_pulse_us": 500,
+    "j3_max_pulse_us": 2500,
+    "j4_min_deg": 15.0,
+    "j4_max_deg": 165.0,
+    "j4_home_deg": 90.0,
+    "j4_speed_deg_s": 80.0,
+    "j4_channel": 4,
+    "j4_min_pulse_us": 500,
+    "j4_max_pulse_us": 2500,
+    "j5_min_deg": 0.0,
+    "j5_max_deg": 180.0,
+    "j5_home_deg": 90.0,
+    "j5_speed_deg_s": 90.0,
+    "j5_channel": 5,
+    "j5_min_pulse_us": 500,
+    "j5_max_pulse_us": 2500,
+    "presets": [
+        {
+            "name": "Home Position",
+            "description": "Central neutral posture",
+            "angles": [90.0, 90.0, 90.0, 90.0, 90.0, 90.0]
+        },
+        {
+            "name": "Parked (Folded)",
+            "description": "Compact folded arm posture",
+            "angles": [90.0, 35.0, 145.0, 90.0, 90.0, 90.0]
+        },
+        {
+            "name": "Forward Reach",
+            "description": "Arm extended forward for workspace operation",
+            "angles": [90.0, 120.0, 70.0, 90.0, 90.0, 90.0]
+        },
+        {
+            "name": "High Reach",
+            "description": "Elevated arm posture for high reach",
+            "angles": [90.0, 135.0, 120.0, 90.0, 90.0, 90.0]
+        }
+    ]
+}

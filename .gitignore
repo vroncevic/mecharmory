@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Reports
+*.report
+*.xml
+*report*.json
+*coverage*.json
+/*.json
+.coverage
+htmlcov/
+.coverage.mecharmory
+dist/
+build/
+*.egg-info/
