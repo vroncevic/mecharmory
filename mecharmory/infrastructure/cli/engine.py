@@ -22,9 +22,11 @@ Info
 from __future__ import annotations
 
 from collections.abc import Mapping
+
 from ats_utilities.option.imanager import IOptionManager
 from ats_utilities.exceptions import ATSRuntimeError, ATSValueError, ATSTypeError
 from ats_utilities.utils.reflection import to_str
+
 from mecharmory.infrastructure.cli.setup.bundle import CLIBundle
 from mecharmory.infrastructure.cli.setup.validator import CLIBundleValidator
 from mecharmory.core.service.iservice import IService
@@ -97,6 +99,7 @@ class CLI:
                 'stdout': '',
                 'stderr': 'cli::run - command not found'
             }
+
         except (ATSRuntimeError, ATSValueError, ATSTypeError) as exc:
             return {'returncode': 1, 'stdout': '', 'stderr': f'cli::run - {exc}'}
 

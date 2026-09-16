@@ -16,39 +16,41 @@ Copyright
     You should have received a copy of the GNU General Public License along
     with this program. If not, see <http://www.gnu.org/licenses/>.
 Info
-    Interactive serial log monitor and manual command console.
+    Composite container for serial monitor, action toolbar, and command console.
 '''
 
 from __future__ import annotations
 
 from tkinter import (
     BOTH,
-    END,
-    FLAT,
-    LEFT,
-    RIGHT,
+    BOTTOM,
     TOP,
     X,
-    Y,
-    Button,
-    Entry,
     Frame,
-    Label,
-    Scrollbar,
-    StringVar,
-    Text,
     Widget
 )
-from typing import Callable
+from typing import Callable, Final
 
 from mecharmory.core.model.communication.serial_message import SerialMessage
-from mecharmory.infrastructure.gui.theme import ThemeManager
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.console.console_panel_style import (
+    ConsolePanelStyle
+)
+from mecharmory.infrastructure.gui.console.console_header_toolbar import (
+    ConsoleHeaderToolbar
+)
+from mecharmory.infrastructure.gui.console.console_command_entry import (
+    ConsoleCommandEntry
+)
+from mecharmory.infrastructure.gui.console.console_log_viewer import (
+    ConsoleLogViewer
+)
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
 __credits__ = ['Vladimir Roncevic', 'Python Software Foundation']
 __license__ = 'https://github.com/vroncevic/mecharmory/blob/dev/LICENSE'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 __maintainer__ = 'Vladimir Roncevic'
 __email__ = 'elektron.ronca@gmail.com'
 __status__ = 'Updated'
@@ -61,123 +63,66 @@ class ConsolePanel(Frame):
         It defines:
 
             :attributes:
-                | _on_send - Callback when manual command is submitted.
-                | _text_area - Scrollable Text widget.
-                | _entry_var - Tkinter StringVar for input line.
+                | DEFAULT_STYLE - Default visual styling parameters.
+                | _header - Header toolbar containing title and action buttons.
+                | _cmd_entry - Command prompt and input submission bar.
+                | _log_viewer - Scrollable log viewer displaying serial messages.
             :methods:
-                | __init__ - Configures text viewer, scrollbar, and input bar.
+                | __init__ - Composes toolbar, command bar, and log viewer sub-widgets.
                 | append_message - Formats and displays a SerialMessage.
                 | clear_log - Empties console content.
-                | _handle_send - Dispatches input text.
+                | select_all - Highlights all log content in buffer.
+                | copy_to_clipboard - Copies selection or entire log to clipboard.
     '''
 
-    _on_send: Callable[[str], None]
-    _text_area: Text
-    _entry_var: StringVar
+    DEFAULT_STYLE: Final[ConsolePanelStyle] = ConsolePanelStyle()
 
-    def __init__(self, parent: Widget, on_send: Callable[[str], None]) -> None:
+    _header: ConsoleHeaderToolbar
+    _cmd_entry: ConsoleCommandEntry
+    _log_viewer: ConsoleLogViewer
+
+    def __init__(
+        self,
+        parent: Widget,
+        on_send: Callable[[str], None],
+        style: ConsolePanelStyle | None = None
+    ) -> None:
         '''
-            Initializes console panel.
+            Initializes composite console panel.
 
             :param parent: Parent Tkinter widget.
             :param on_send: Command submit callback.
+            :param style: Optional visual styling configuration.
         '''
-        super().__init__(parent, bg=ThemeManager.BG_PANEL, padx=10, pady=8)
-        self._on_send = on_send
-        self._entry_var = StringVar()
-
-        # Header
-        header = Frame(self, bg=ThemeManager.BG_PANEL)
-        header.pack(fill=X, side=TOP, pady=(0, 6))
-
-        lbl_title = Label(
-            header,
-            text='SERIAL MONITOR & COMMAND CONSOLE',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
-            fg=ThemeManager.TEXT_PRIMARY,
-            bg=ThemeManager.BG_PANEL
+        cfg: ConsolePanelStyle = style or self.DEFAULT_STYLE
+        super().__init__(
+            parent,
+            bg=ThemeManager.BG_PANEL,
+            padx=cfg.panel_pad_x,
+            pady=cfg.panel_pad_y
         )
-        lbl_title.pack(side=LEFT)
 
-        btn_clear = Button(
-            header,
-            text='Clear',
-            font=(ThemeManager.FONT_FAMILY, 8),
-            bg=ThemeManager.BG_CARD,
-            fg=ThemeManager.TEXT_SECONDARY,
-            relief=FLAT,
-            padx=8,
-            pady=1,
-            command=self.clear_log
+        # Header Toolbar (Top)
+        self._header = ConsoleHeaderToolbar(
+            self,
+            on_clear=self.clear_log,
+            on_copy=self.copy_to_clipboard,
+            on_select_all=self.select_all,
+            style=cfg
         )
-        btn_clear.pack(side=RIGHT)
+        self._header.pack(fill=X, side=TOP, pady=(0, cfg.header_pad_bottom))
 
-        # Log Area Frame
-        log_frame = Frame(self, bg=ThemeManager.BG_DARK)
-        log_frame.pack(fill=BOTH, expand=True, side=TOP)
-
-        scrollbar = Scrollbar(log_frame)
-        scrollbar.pack(side=RIGHT, fill=Y)
-
-        self._text_area = Text(
-            log_frame,
-            wrap='none',
-            bg=ThemeManager.BG_DARK,
-            fg=ThemeManager.TEXT_PRIMARY,
-            font=(ThemeManager.FONT_MONO, 9),
-            insertbackground=ThemeManager.TEXT_PRIMARY,
-            relief=FLAT,
-            padx=6,
-            pady=6,
-            yscrollcommand=scrollbar.set,
-            state='disabled'
+        # Command Entry Row (Bottom)
+        self._cmd_entry = ConsoleCommandEntry(
+            self,
+            on_send=on_send,
+            style=cfg
         )
-        self._text_area.pack(side=LEFT, fill=BOTH, expand=True)
-        scrollbar.config(command=self._text_area.yview)
+        self._cmd_entry.pack(fill=X, side=BOTTOM, pady=(cfg.cmd_entry_pad_top, 0))
 
-        # Text color tags
-        self._text_area.tag_config('tx', foreground=ThemeManager.ACCENT_CYAN)
-        self._text_area.tag_config('rx', foreground=ThemeManager.ACCENT_GREEN)
-        self._text_area.tag_config('timestamp', foreground=ThemeManager.TEXT_SECONDARY)
-        self._text_area.tag_config('error', foreground=ThemeManager.ACCENT_RED)
-
-        # Command Entry Row
-        cmd_frame = Frame(self, bg=ThemeManager.BG_PANEL)
-        cmd_frame.pack(fill=X, side=TOP, pady=(6, 0))
-
-        lbl_prompt = Label(
-            cmd_frame,
-            text='cmd >',
-            font=(ThemeManager.FONT_MONO, 9),
-            fg=ThemeManager.ACCENT_CYAN,
-            bg=ThemeManager.BG_PANEL
-        )
-        lbl_prompt.pack(side=LEFT, padx=(0, 6))
-
-        entry_cmd = Entry(
-            cmd_frame,
-            textvariable=self._entry_var,
-            font=(ThemeManager.FONT_MONO, 9),
-            bg=ThemeManager.BG_DARK,
-            fg=ThemeManager.TEXT_PRIMARY,
-            insertbackground=ThemeManager.TEXT_PRIMARY,
-            relief=FLAT
-        )
-        entry_cmd.pack(side=LEFT, fill=X, expand=True, padx=(0, 6))
-        entry_cmd.bind('<Return>', lambda e: self._handle_send())
-
-        btn_send = Button(
-            cmd_frame,
-            text='Send',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
-            bg=ThemeManager.ACCENT_CYAN,
-            fg=ThemeManager.BG_DARK,
-            relief=FLAT,
-            padx=12,
-            pady=2,
-            command=self._handle_send
-        )
-        btn_send.pack(side=RIGHT)
+        # Log Area Viewer (Center - expands between Header and Cmd Entry)
+        self._log_viewer = ConsoleLogViewer(self, style=cfg)
+        self._log_viewer.pack(fill=BOTH, expand=True, side=TOP)
 
     def append_message(self, message: SerialMessage) -> None:
         '''
@@ -185,33 +130,28 @@ class ConsolePanel(Frame):
 
             :param message: SerialMessage domain instance.
         '''
-        self._text_area.config(state='normal')
-        self._text_area.insert(END, f'[{message.timestamp}] ', 'timestamp')
-
-        if message.direction == 'TX':
-            self._text_area.insert(END, '-> ', 'tx')
-            self._text_area.insert(END, f'{message.text}\n')
-        else:
-            self._text_area.insert(END, '<- ', 'rx')
-            tag: str = 'error' if message.text.startswith('ERR') else 'rx'
-            self._text_area.insert(END, f'{message.text}\n', tag)
-
-        self._text_area.see(END)
-        self._text_area.config(state='disabled')
+        self._log_viewer.append_message(message)
 
     def clear_log(self) -> None:
         '''
             Clears text monitor buffer.
         '''
-        self._text_area.config(state='normal')
-        self._text_area.delete('1.0', END)
-        self._text_area.config(state='disabled')
+        self._log_viewer.clear()
 
-    def _handle_send(self) -> None:
+    def select_all(self, _event: object | None = None) -> str | None:
         '''
-            Dispatches typed command and clears input entry.
+            Selects all content in the text monitor buffer.
+
+            :param _event: Optional Tkinter event.
+            :return: 'break' string if invoked via key event.
         '''
-        cmd: str = self._entry_var.get().strip()
-        if cmd:
-            self._on_send(cmd)
-            self._entry_var.set('')
+        return self._log_viewer.select_all(_event)
+
+    def copy_to_clipboard(self, _event: object | None = None) -> str | None:
+        '''
+            Copies selected text or complete log buffer to the system clipboard.
+
+            :param _event: Optional Tkinter event.
+            :return: 'break' string if invoked via key event.
+        '''
+        return self._log_viewer.copy_to_clipboard(_event)

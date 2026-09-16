@@ -13,6 +13,8 @@ Subpackages
    mecharmory.infrastructure.gui.joint
    mecharmory.infrastructure.gui.preset
    mecharmory.infrastructure.gui.serial
+   mecharmory.infrastructure.gui.theme
+   mecharmory.infrastructure.gui.workspace
 
 Submodules
 ----------
@@ -22,8 +24,8 @@ Submodules
 
    mecharmory.infrastructure.gui.gui_event_mediator
    mecharmory.infrastructure.gui.gui_window
+   mecharmory.infrastructure.gui.gui_window_style
    mecharmory.infrastructure.gui.igui_window
-   mecharmory.infrastructure.gui.theme
 
 Module contents
 ---------------

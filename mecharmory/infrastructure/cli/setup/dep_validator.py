@@ -22,9 +22,11 @@ Info
 from __future__ import annotations
 
 from collections.abc import Mapping
+
 from ats_utilities.exceptions import ATSValueError, ATSTypeError
 from ats_utilities.validation.check_type import istype
 from ats_utilities.validation.check_value import not_none
+
 from mecharmory.infrastructure.cli.setup.keys import CLIBundleKeys
 from mecharmory.infrastructure.cli.setup.dependencies import CLIBundleDependencies
 
@@ -87,5 +89,6 @@ class CLIBundleDependenciesValidator:
         try:
             cls.validate(dependencies)
             return True
+
         except (ATSValueError, ATSTypeError):
             return False

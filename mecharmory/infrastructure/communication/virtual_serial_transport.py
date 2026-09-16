@@ -88,7 +88,6 @@ class VirtualSerialTransport:
         self._stop_event.clear()
         self._is_connected = True
 
-        # Enqueue startup banner matching physical Pico firmware
         self._rx_queue.put('===========================================')
         self._rx_queue.put(' Mecharmo 6-DOF Robotic Arm Controller v1.0.0')
         self._rx_queue.put(' Hardware: [EMULATED] Virtual Pico + PCA9685')
@@ -98,14 +97,17 @@ class VirtualSerialTransport:
 
         self._sim_thread = Thread(target=self._run_sim_loop, daemon=True)
         self._sim_thread.start()
+
         return True
 
     def close(self) -> None:
         '''Deactivates virtual connection.'''
         self._is_connected = False
         self._stop_event.set()
+
         if self._sim_thread is not None and self._sim_thread.is_alive():
             self._sim_thread.join(timeout=0.5)
+
         self._sim_thread = None
 
     def write_line(self, line: str) -> bool:
@@ -119,8 +121,10 @@ class VirtualSerialTransport:
             return False
 
         responses: list[str] = self._firmware.process_command(line)
+
         for resp in responses:
             self._rx_queue.put(resp)
+
         return True
 
     def read_line(self) -> str | None:
@@ -134,6 +138,7 @@ class VirtualSerialTransport:
 
         try:
             return self._rx_queue.get_nowait()
+
         except Empty:
             return None
 

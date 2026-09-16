@@ -26,7 +26,15 @@ from os.path import exists
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 
-from mecharmory.infrastructure.communication.serial_preferences import SerialPreferences
+from ats_utilities.context.bundle import ContextBundle
+from ats_utilities.context.factory import ContextBundleFactory
+
+from mecharmory.infrastructure.communication.iserial_preferences import (
+    ISerialPreferences
+)
+from mecharmory.infrastructure.communication.serial_preferences import (
+    SerialPreferences
+)
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -45,26 +53,48 @@ class TestSerialPreferences(TestCase):
         It defines:
 
             :methods:
+                | test_constants - Verifies class Final constant definitions.
+                | test_protocol_conformance - Verifies structural ISerialPreferences conformance.
                 | test_default_preference - Tests fallback when preferences file does not exist.
                 | test_save_and_load_preference - Tests saving and reloading preferences to temporary file.
     '''
 
+    def test_constants(self) -> None:
+        '''Verifies class Final constant definitions.'''
+        self.assertEqual(SerialPreferences.PREFS_FILE_PATH, '~/.mecharmory_prefs.json')
+        self.assertEqual(SerialPreferences.KEY_PORT, 'port')
+        self.assertEqual(SerialPreferences.KEY_BAUDRATE, 'baudrate')
+        self.assertEqual(SerialPreferences.DEFAULT_PORT, '/dev/ttyACM0')
+        self.assertEqual(SerialPreferences.DEFAULT_BAUDRATE, 115200)
+
+    def test_protocol_conformance(self) -> None:
+        '''Verifies structural ISerialPreferences conformance.'''
+        ctx: ContextBundle = ContextBundleFactory.create_bundle()
+        prefs = SerialPreferences(context_bundle=ctx)
+        self.assertIsInstance(prefs, ISerialPreferences)
+
     def test_default_preference(self) -> None:
         '''Tests fallback when preferences file does not exist.'''
-        prefs = SerialPreferences()
-        prefs._filepath = '/tmp/non_existent_mecharmory_prefs_test_xyz.json'
+        ctx: ContextBundle = ContextBundleFactory.create_bundle()
+        prefs = SerialPreferences(
+            context_bundle=ctx,
+            filepath='/tmp/non_existent_mecharmory_prefs_test_xyz.json'
+        )
         port, baud = prefs.load_preference()
-        self.assertEqual(port, '/dev/ttyACM0')
-        self.assertEqual(baud, 115200)
+        self.assertEqual(port, SerialPreferences.DEFAULT_PORT)
+        self.assertEqual(baud, SerialPreferences.DEFAULT_BAUDRATE)
 
     def test_save_and_load_preference(self) -> None:
         '''Tests saving and reloading preferences to temporary file.'''
-        with NamedTemporaryFile(delete=False) as tmp:
+        with NamedTemporaryFile(delete=False, suffix='.json') as tmp:
             tmp_path = tmp.name
 
         try:
-            prefs = SerialPreferences()
-            prefs._filepath = tmp_path
+            ctx: ContextBundle = ContextBundleFactory.create_bundle()
+            prefs = SerialPreferences(
+                context_bundle=ctx,
+                filepath=tmp_path
+            )
             prefs.save_preference('/dev/ttyUSB0', 57600)
             port, baud = prefs.load_preference()
             self.assertEqual(port, '/dev/ttyUSB0')

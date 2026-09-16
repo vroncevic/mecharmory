@@ -21,6 +21,8 @@ Info
 
 from __future__ import annotations
 
+from typing import Final
+
 from serial.tools.list_ports import comports
 
 __author__ = 'Vladimir Roncevic'
@@ -39,13 +41,22 @@ class SerialPortScanner:
 
         It defines:
 
+            :attributes:
+                | RP2040_VID - Raspberry Pi Pico RP2040 USB CDC vendor ID substring.
+                | KEYWORD_PICO - Keyword identifier for Pico in port description.
+                | KEYWORD_RASPBERRY - Keyword identifier for Raspberry in port description.
             :methods:
                 | get_available_ports - Returns sorted list of device paths.
+                | check_available_port - Checks if a port name exists among available ports.
                 | is_pico_device - Identifies Raspberry Pi Pico RP2040 VID/PID.
     '''
 
-    @staticmethod
-    def get_available_ports() -> list[str]:
+    RP2040_VID: Final[str] = '2e8a'
+    KEYWORD_PICO: Final[str] = 'pico'
+    KEYWORD_RASPBERRY: Final[str] = 'raspberry'
+
+    @classmethod
+    def get_available_ports(cls) -> list[str]:
         '''
             Scans and returns discovered serial port names.
 
@@ -60,22 +71,36 @@ class SerialPortScanner:
                 desc: str = (p.description or '').lower()
                 hwid: str = (p.hwid or '').lower()
 
-                # RP2040 USB CDC vendor ID is 2e8a
-                if '2e8a' in hwid or 'pico' in desc or 'raspberry' in desc:
+                if (
+                    cls.RP2040_VID in hwid
+                    or cls.KEYWORD_PICO in desc
+                    or cls.KEYWORD_RASPBERRY in desc
+                ):
                     pico_ports.append(device)
                 else:
                     ports.append(device)
+
         except (OSError, ValueError):
             pass
 
         return pico_ports + ports
 
-    @staticmethod
-    def is_pico_device(hwid: str) -> bool:
+    @classmethod
+    def check_available_port(cls, port_name: str) -> bool:
+        '''
+            Checks whether specified serial port name is available on the host system.
+
+            :param port_name: Port name or device path to check.
+            :return: True if port is found among available ports, False otherwise.
+        '''
+        return port_name in cls.get_available_ports()
+
+    @classmethod
+    def is_pico_device(cls, hwid: str) -> bool:
         '''
             Determines if hardware ID belongs to Raspberry Pi Pico.
 
             :param hwid: Hardware ID string.
             :return: True if Pico identified, False otherwise.
         '''
-        return '2e8a' in hwid.lower()
+        return cls.RP2040_VID in hwid.lower()

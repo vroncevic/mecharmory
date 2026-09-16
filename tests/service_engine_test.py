@@ -23,6 +23,9 @@ from __future__ import annotations
 
 from unittest import TestCase, main
 
+from ats_utilities.context.bundle import ContextBundle
+from ats_utilities.context.factory import ContextBundleFactory
+
 from mecharmory.core.model.arm.arm_model import ArmModel
 from mecharmory.core.service.serial.serial_service import SerialService
 from mecharmory.core.service.arm.arm_controller_service import (
@@ -49,17 +52,26 @@ class TestServiceEngine(TestCase):
 
         It defines:
 
+            :attributes:
+                | _context - ATS ContextBundle for test operations.
             :methods:
+                | setUp - Prepares test ATS context.
                 | test_service_initialization - Tests service readiness and sub-services.
                 | test_subservice_getters - Tests accessing sub-services.
     '''
+
+    _context: ContextBundle
+
+    def setUp(self) -> None:
+        '''Prepares test ATS context.'''
+        self._context = ContextBundleFactory.create_bundle()
 
     def test_service_initialization(self) -> None:
         '''Tests service readiness and sub-services.'''
         model = ArmModel()
         serial_service = SerialService()
         arm_service = ArmControllerService(model, serial_service)
-        storage = ArmStorageService()
+        storage = ArmStorageService(self._context)
 
         service = Service(arm_service, serial_service, storage)
         self.assertTrue(service.is_initialized())
@@ -69,7 +81,7 @@ class TestServiceEngine(TestCase):
         model = ArmModel()
         serial_service = SerialService()
         arm_service = ArmControllerService(model, serial_service)
-        storage = ArmStorageService()
+        storage = ArmStorageService(self._context)
 
         service = Service(arm_service, serial_service, storage)
         self.assertEqual(service.get_arm_service(), arm_service)

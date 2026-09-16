@@ -22,6 +22,7 @@ Info
 from __future__ import annotations
 
 from ats_utilities.option.imanager import IOptionManager
+
 from mecharmory.core.service.iservice import IService
 from mecharmory.infrastructure.gui.igui_window import IGuiWindow
 from mecharmory.infrastructure.cli.setup.options import CLIBundleOptions
@@ -83,8 +84,7 @@ class CLIBundleFactory:
 
         studio_definition: ICommandDefinition = StudioCommandDefinition()
         studio_executor: ICommandExecutor[ICommandDefinition, object, object, object] = StudioCommandExecutor(
-            definition=studio_definition,
-            gui=gui
+            definition=studio_definition, gui=gui
         )
         studio_cmd: CommandBundle = CommandBundle(definition=studio_definition, executor=studio_executor)
 

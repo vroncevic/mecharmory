@@ -32,7 +32,10 @@ from tkinter import (
 )
 from typing import Callable
 
-from mecharmory.infrastructure.gui.theme import ThemeManager
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.joint.joint_widget_style import (
+    JointWidgetStyle
+)
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -51,10 +54,12 @@ class JointEntryControl(Frame):
         It defines:
 
             :attributes:
+                | DEFAULT_STYLE - Default visual styling parameters.
                 | _on_apply - Callback invoked with verified angle.
                 | _entry_var - Tkinter StringVar holding input text.
                 | _entry - Tkinter Entry box.
                 | _btn_set - Set submission button.
+                | _style - Visual styling configuration reference.
             :methods:
                 | __init__ - Configures entry field, set button, and Return key binding.
                 | set_value - Updates visual text without dispatching.
@@ -62,16 +67,20 @@ class JointEntryControl(Frame):
                 | _apply - Parses number and dispatches apply callback.
     '''
 
+    DEFAULT_STYLE: JointWidgetStyle = JointWidgetStyle()
+
     _on_apply: Callable[[float], None]
     _entry_var: StringVar
     _entry: Entry
     _btn_set: Button
+    _style: JointWidgetStyle
 
     def __init__(
         self,
         parent: Widget,
         on_apply: Callable[[float], None],
-        initial_val: float
+        initial_val: float,
+        style: JointWidgetStyle | None = None
     ) -> None:
         '''
             Initializes entry control widgets.
@@ -79,32 +88,36 @@ class JointEntryControl(Frame):
             :param parent: Parent container.
             :param on_apply: Callback invoked on angle entry.
             :param initial_val: Starting numeric value.
+            :param style: Optional visual styling configuration.
         '''
         super().__init__(parent, bg=ThemeManager.BG_CARD)
+        cfg: JointWidgetStyle = style or self.DEFAULT_STYLE
+        self._style = cfg
         self._on_apply = on_apply
-        self._entry_var = StringVar(value=f'{initial_val:.1f}')
+        self._entry_var = StringVar(value=cfg.entry_val_template.format(val=initial_val))
 
         self._entry = Entry(
             self,
             textvariable=self._entry_var,
-            width=5,
-            font=(ThemeManager.FONT_MONO, 9),
+            width=cfg.entry_width,
+            font=(ThemeManager.FONT_MONO, cfg.entry_font_size),
             bg=ThemeManager.BG_DARK,
             fg=ThemeManager.TEXT_PRIMARY,
             insertbackground=ThemeManager.TEXT_PRIMARY,
             relief=FLAT
         )
-        self._entry.pack(side=LEFT, padx=(0, 4))
+        self._entry.pack(side=LEFT, padx=cfg.entry_pad_x)
         self._entry.bind('<Return>', lambda e: self._apply())
 
         self._btn_set = Button(
             self,
-            text='Set',
-            font=(ThemeManager.FONT_FAMILY, 8, 'bold'),
+            text=cfg.btn_set_text,
+            font=(ThemeManager.FONT_FAMILY, cfg.btn_set_font_size, 'bold'),
             bg=ThemeManager.ACCENT_BLUE,
             fg=ThemeManager.BG_DARK,
             relief=FLAT,
-            padx=6,
+            padx=cfg.btn_set_pad_x,
+            pady=cfg.btn_set_pad_y,
             command=self._apply
         )
         self._btn_set.pack(side=LEFT)
@@ -115,7 +128,7 @@ class JointEntryControl(Frame):
 
             :param val: Angle float.
         '''
-        self._entry_var.set(f'{val:.1f}')
+        self._entry_var.set(self._style.entry_val_template.format(val=val))
 
     def get_value(self) -> str:
         '''
@@ -132,5 +145,6 @@ class JointEntryControl(Frame):
         try:
             val: float = float(self._entry_var.get())
             self._on_apply(val)
+
         except ValueError:
             pass

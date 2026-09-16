@@ -207,35 +207,58 @@ Tool structure
          │   │   └── scheme.json
          │   ├── gui/
          │   │   ├── arm/
+         │   │   │   ├── arm_control_header.py
          │   │   │   ├── arm_control_panel.py
+         │   │   │   ├── arm_joint_list.py
+         │   │   │   ├── arm_panel_style.py
          │   │   │   └── __init__.py
          │   │   ├── canvas/
+         │   │   │   ├── arm_background_painter.py
          │   │   │   ├── arm_canvas_painter.py
          │   │   │   ├── arm_canvas_preview.py
+         │   │   │   ├── arm_canvas_style.py
+         │   │   │   ├── arm_hud_painter.py
          │   │   │   ├── arm_kinematics_2d.py
+         │   │   │   ├── arm_linkage_painter.py
+         │   │   │   ├── arm_pedestal_painter.py
          │   │   │   ├── arm_pose_2d.py
+         │   │   │   ├── arm_tool_painter.py
+         │   │   │   ├── arm_tube_painter.py
          │   │   │   └── __init__.py
          │   │   ├── console/
+         │   │   │   ├── console_command_entry.py
+         │   │   │   ├── console_header_toolbar.py
+         │   │   │   ├── console_log_viewer.py
          │   │   │   ├── console_panel.py
+         │   │   │   ├── console_panel_style.py
          │   │   │   └── __init__.py
          │   │   ├── gui_event_mediator.py
          │   │   ├── gui_window.py
+         │   │   ├── gui_window_style.py
          │   │   ├── igui_window.py
          │   │   ├── __init__.py
          │   │   ├── joint/
          │   │   │   ├── __init__.py
          │   │   │   ├── joint_control_widget.py
          │   │   │   ├── joint_entry_control.py
-         │   │   │   └── joint_step_buttons.py
+         │   │   │   ├── joint_step_buttons.py
+         │   │   │   └── joint_widget_style.py
          │   │   ├── preset/
          │   │   │   ├── __init__.py
-         │   │   │   └── preset_panel.py
+         │   │   │   ├── preset_panel.py
+         │   │   │   └── preset_panel_style.py
          │   │   ├── serial/
          │   │   │   ├── __init__.py
          │   │   │   ├── serial_bar.py
+         │   │   │   ├── serial_panel_style.py
          │   │   │   ├── serial_port_selector.py
          │   │   │   └── serial_status_badge.py
-         │   │   └── theme.py
+         │   │   ├── theme/
+         │   │   │   ├── __init__.py
+         │   │   │   └── theme_manager.py
+         │   │   └── workspace/
+         │   │       ├── arm_workspace.py
+         │   │       └── __init__.py
          │   ├── __init__.py
          │   └── storage/
          │       ├── arm_storage_service.py
@@ -255,7 +278,7 @@ Tool structure
              ├── registry.py
              └── validator.py
 
-     28 directories, 109 files
+     30 directories, 130 files
 ```
 </details>
 
@@ -384,52 +407,73 @@ Every build is validated against 4 strict automated quality gates:
 | `mecharmory/infrastructure/command/studio_command_definition.py` | 24 | 1 | 96%|
 | `mecharmory/infrastructure/command/studio_command_executor.py` | 49 | 26 | 47%|
 | `mecharmory/infrastructure/communication/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/communication/iserial_port_scanner.py` | 13 | 0 | 100%|
+| `mecharmory/infrastructure/communication/iserial_port_scanner.py` | 14 | 0 | 100%|
 | `mecharmory/infrastructure/communication/iserial_preferences.py` | 14 | 0 | 100%|
 | `mecharmory/infrastructure/communication/itransport.py` | 17 | 17 | 0%|
-| `mecharmory/infrastructure/communication/serial_port_scanner.py` | 28 | 3 | 89%|
-| `mecharmory/infrastructure/communication/serial_preferences.py` | 29 | 2 | 93%|
+| `mecharmory/infrastructure/communication/serial_port_scanner.py` | 35 | 1 | 97%|
+| `mecharmory/infrastructure/communication/serial_preferences.py` | 51 | 3 | 94%|
 | `mecharmory/infrastructure/communication/serial_transport.py` | 60 | 36 | 40%|
 | `mecharmory/infrastructure/communication/virtual_serial_transport.py` | 67 | 2 | 97%|
 | `mecharmory/infrastructure/gui/__init__.py` | 9 | 0 | 100%|
 | `mecharmory/infrastructure/gui/arm/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/gui/arm/arm_control_panel.py` | 49 | 2 | 96%|
+| `mecharmory/infrastructure/gui/arm/arm_control_header.py` | 36 | 0 | 100%|
+| `mecharmory/infrastructure/gui/arm/arm_control_panel.py` | 30 | 0 | 100%|
+| `mecharmory/infrastructure/gui/arm/arm_joint_list.py` | 41 | 1 | 98%|
+| `mecharmory/infrastructure/gui/arm/arm_panel_style.py` | 34 | 0 | 100%|
 | `mecharmory/infrastructure/gui/canvas/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/gui/canvas/arm_canvas_painter.py` | 73 | 0 | 100%|
-| `mecharmory/infrastructure/gui/canvas/arm_canvas_preview.py` | 34 | 0 | 100%|
-| `mecharmory/infrastructure/gui/canvas/arm_kinematics_2d.py` | 33 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_background_painter.py` | 17 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_canvas_painter.py` | 48 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_canvas_preview.py` | 46 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_canvas_style.py` | 54 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_hud_painter.py` | 17 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_kinematics_2d.py` | 41 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_linkage_painter.py` | 22 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_pedestal_painter.py` | 22 | 0 | 100%|
 | `mecharmory/infrastructure/gui/canvas/arm_pose_2d.py` | 24 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_tool_painter.py` | 30 | 0 | 100%|
+| `mecharmory/infrastructure/gui/canvas/arm_tube_painter.py` | 27 | 0 | 100%|
 | `mecharmory/infrastructure/gui/console/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/gui/console/console_panel.py` | 67 | 17 | 75%|
-| `mecharmory/infrastructure/gui/gui_event_mediator.py` | 54 | 20 | 63%|
-| `mecharmory/infrastructure/gui/gui_window.py` | 95 | 21 | 78%|
+| `mecharmory/infrastructure/gui/console/console_command_entry.py` | 41 | 6 | 85%|
+| `mecharmory/infrastructure/gui/console/console_header_toolbar.py` | 36 | 0 | 100%|
+| `mecharmory/infrastructure/gui/console/console_log_viewer.py` | 70 | 25 | 64%|
+| `mecharmory/infrastructure/gui/console/console_panel.py` | 39 | 4 | 90%|
+| `mecharmory/infrastructure/gui/console/console_panel_style.py` | 51 | 0 | 100%|
+| `mecharmory/infrastructure/gui/gui_event_mediator.py` | 70 | 0 | 100%|
+| `mecharmory/infrastructure/gui/gui_window.py` | 91 | 16 | 82%|
+| `mecharmory/infrastructure/gui/gui_window_style.py` | 22 | 0 | 100%|
 | `mecharmory/infrastructure/gui/igui_window.py` | 16 | 0 | 100%|
 | `mecharmory/infrastructure/gui/joint/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/gui/joint/joint_control_widget.py` | 75 | 24 | 68%|
-| `mecharmory/infrastructure/gui/joint/joint_entry_control.py` | 35 | 6 | 83%|
-| `mecharmory/infrastructure/gui/joint/joint_step_buttons.py` | 25 | 0 | 100%|
+| `mecharmory/infrastructure/gui/joint/joint_control_widget.py` | 80 | 22 | 72%|
+| `mecharmory/infrastructure/gui/joint/joint_entry_control.py` | 40 | 6 | 85%|
+| `mecharmory/infrastructure/gui/joint/joint_step_buttons.py` | 29 | 0 | 100%|
+| `mecharmory/infrastructure/gui/joint/joint_widget_style.py` | 45 | 0 | 100%|
 | `mecharmory/infrastructure/gui/preset/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/gui/preset/preset_panel.py` | 25 | 0 | 100%|
+| `mecharmory/infrastructure/gui/preset/preset_panel.py` | 28 | 0 | 100%|
+| `mecharmory/infrastructure/gui/preset/preset_panel_style.py` | 22 | 0 | 100%|
 | `mecharmory/infrastructure/gui/serial/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/gui/serial/serial_bar.py` | 58 | 9 | 84%|
-| `mecharmory/infrastructure/gui/serial/serial_port_selector.py` | 55 | 9 | 84%|
-| `mecharmory/infrastructure/gui/serial/serial_status_badge.py` | 28 | 5 | 82%|
-| `mecharmory/infrastructure/gui/theme.py` | 29 | 0 | 100%|
+| `mecharmory/infrastructure/gui/serial/serial_bar.py` | 61 | 9 | 85%|
+| `mecharmory/infrastructure/gui/serial/serial_panel_style.py` | 51 | 0 | 100%|
+| `mecharmory/infrastructure/gui/serial/serial_port_selector.py` | 60 | 9 | 85%|
+| `mecharmory/infrastructure/gui/serial/serial_status_badge.py` | 32 | 5 | 84%|
+| `mecharmory/infrastructure/gui/theme/__init__.py` | 9 | 0 | 100%|
+| `mecharmory/infrastructure/gui/theme/theme_manager.py` | 29 | 0 | 100%|
+| `mecharmory/infrastructure/gui/workspace/__init__.py` | 9 | 0 | 100%|
+| `mecharmory/infrastructure/gui/workspace/arm_workspace.py` | 45 | 0 | 100%|
 | `mecharmory/infrastructure/storage/__init__.py` | 9 | 0 | 100%|
-| `mecharmory/infrastructure/storage/arm_storage_service.py` | 50 | 1 | 98%|
+| `mecharmory/infrastructure/storage/arm_storage_service.py` | 49 | 1 | 98%|
 | `mecharmory/setup/__init__.py` | 9 | 0 | 100%|
 | `mecharmory/setup/bundle.py` | 23 | 0 | 100%|
 | `mecharmory/setup/config_resolver.py` | 35 | 2 | 94%|
 | `mecharmory/setup/dep_validator.py` | 36 | 5 | 86%|
 | `mecharmory/setup/dependencies.py` | 19 | 0 | 100%|
-| `mecharmory/setup/factory.py` | 58 | 1 | 98%|
+| `mecharmory/setup/factory.py` | 60 | 1 | 98%|
 | `mecharmory/setup/keys.py` | 35 | 0 | 100%|
 | `mecharmory/setup/model_resolver.py` | 29 | 1 | 97%|
 | `mecharmory/setup/opt_validator.py` | 36 | 16 | 56%|
 | `mecharmory/setup/options.py` | 20 | 0 | 100%|
 | `mecharmory/setup/registry.py` | 24 | 0 | 100%|
 | `mecharmory/setup/validator.py` | 48 | 5 | 90%|
-| **Total** | 2981 | 377 | 87% |
+| **Total** | 3702 | 366 | 90% |
 
 </details>
 

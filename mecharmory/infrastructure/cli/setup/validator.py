@@ -22,10 +22,12 @@ Info
 from __future__ import annotations
 
 from collections.abc import Sequence
+
 from ats_utilities.exceptions import ATSValueError, ATSTypeError
 from ats_utilities.option.imanager import IOptionManager
 from ats_utilities.validation.check_value import not_none
 from ats_utilities.validation.check_type import istype
+
 from mecharmory.infrastructure.cli.setup.bundle import CLIBundle
 from mecharmory.core.service.iservice import IService
 
@@ -93,5 +95,6 @@ class CLIBundleValidator:
         try:
             cls.validate(bundle)
             return True
+
         except (ATSValueError, ATSTypeError):
             return False

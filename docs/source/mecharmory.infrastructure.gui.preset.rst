@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    mecharmory.infrastructure.gui.preset.preset_panel
+   mecharmory.infrastructure.gui.preset.preset_panel_style
 
 Module contents
 ---------------

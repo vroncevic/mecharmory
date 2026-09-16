@@ -88,8 +88,10 @@ class Mecharmory(Base):
 
             self._logger = self.get_context().logger
             self._logger.write_log(INFO, '✅ mecharmory: engine initialized successfully!')
+
         except (ATSValueError, ATSTypeError) as exc:
             stdout.write(f'❌ mecharmory: {exc}!\n')
+
         except Exception as exc:
             stdout.write(f'❌ mecharmory unexpected exception: {exc}!\n')
 
@@ -120,16 +122,21 @@ class Mecharmory(Base):
                 self._logger.write_log(ERROR, '❌ mecharmory: engine not initialized!')
             else:
                 stdout.write('❌ mecharmory: engine not initialized!\n')
+
             return False
+
         except (ATSValueError, ATSTypeError) as exc:
             if self._logger is not None:
                 self._logger.write_log(ERROR, f'❌ mecharmory: {exc}!')
             else:
                 stdout.write(f'❌ mecharmory: {exc}!\n')
+
             return False
+
         except Exception as exc:
             if self._logger is not None:
                 self._logger.write_log(ERROR, f'❌ mecharmory unexpected exception: {exc}!')
             else:
                 stdout.write(f'❌ mecharmory unexpected exception: {exc}!\n')
+
             return False

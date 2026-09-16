@@ -24,7 +24,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import ClassVar
 from types import MappingProxyType
+
 from ats_utilities.option.imanager import IOptionManager
+
 from mecharmory.core.service.iservice import IService
 from mecharmory.infrastructure.gui.igui_window import IGuiWindow
 

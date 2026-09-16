@@ -42,6 +42,7 @@ class ISerialPortScanner(Protocol):
 
             :methods:
                 | get_available_ports - Discovers available communication device paths.
+                | check_available_port - Checks if a port name exists among available ports.
     '''
 
     def get_available_ports(self) -> list[str]:
@@ -49,4 +50,12 @@ class ISerialPortScanner(Protocol):
             Scans host system and returns list of available serial port names.
 
             :return: List of device port paths.
+        '''
+
+    def check_available_port(self, port_name: str) -> bool:
+        '''
+            Checks whether specified serial port name is available on the host system.
+
+            :param port_name: Port name or device path to check.
+            :return: True if port is found among available ports, False otherwise.
         '''
