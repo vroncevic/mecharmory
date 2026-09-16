@@ -40,6 +40,9 @@ from mecharmory.infrastructure.communication.serial_transport import (
 from mecharmory.infrastructure.communication.virtual_serial_transport import (
     VirtualSerialTransport
 )
+from mecharmory.infrastructure.communication.serial_preferences import (
+    SerialPreferences
+)
 from mecharmory.infrastructure.storage.arm_storage_service import (
     ArmStorageService
 )
@@ -141,9 +144,13 @@ class MecharmoryBundleFactory:
             serial_service=serial_service,
             storage=storage
         )
+        preferences: SerialPreferences = SerialPreferences(
+            context_bundle=context_bundle
+        )
         gui: GuiWindow = GuiWindow(
             arm_service=arm_service,
-            serial_service=serial_service
+            serial_service=serial_service,
+            preferences=preferences
         )
 
         cli_bundle: CLIBundle = CLIBundleFactory.create_bundle(

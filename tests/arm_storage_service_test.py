@@ -25,6 +25,9 @@ from os import remove
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 
+from ats_utilities.context.bundle import ContextBundle
+from ats_utilities.context.factory import ContextBundleFactory
+
 from mecharmory.infrastructure.storage.arm_storage_service import ArmStorageService
 
 __author__ = 'Vladimir Roncevic'
@@ -43,21 +46,30 @@ class TestArmStorageService(TestCase):
 
         It defines:
 
+            :attributes:
+                | _context - ATS ContextBundle for test operations.
             :methods:
+                | setUp - Prepares test ATS context.
                 | test_initialization - Tests service readiness flag.
                 | test_save_and_load_config - Tests JSON configuration persistence.
                 | test_save_and_load_text - Tests text file persistence.
                 | test_load_nonexistent_files - Tests fallback on missing files.
     '''
 
+    _context: ContextBundle
+
+    def setUp(self) -> None:
+        '''Prepares test ATS context.'''
+        self._context = ContextBundleFactory.create_bundle()
+
     def test_initialization(self) -> None:
         '''Tests service readiness flag.'''
-        storage = ArmStorageService()
+        storage = ArmStorageService(self._context)
         self.assertTrue(storage.is_initialized())
 
     def test_save_and_load_config(self) -> None:
         '''Tests JSON configuration persistence.'''
-        storage = ArmStorageService()
+        storage = ArmStorageService(self._context)
         temp_file = NamedTemporaryFile(delete=False, suffix='.json')
         temp_file.close()
 
@@ -72,7 +84,7 @@ class TestArmStorageService(TestCase):
 
     def test_save_and_load_text(self) -> None:
         '''Tests text file persistence.'''
-        storage = ArmStorageService()
+        storage = ArmStorageService(self._context)
         temp_file = NamedTemporaryFile(delete=False, suffix='.txt')
         temp_file.close()
 
@@ -86,7 +98,7 @@ class TestArmStorageService(TestCase):
 
     def test_load_nonexistent_files(self) -> None:
         '''Tests fallback on missing files.'''
-        storage = ArmStorageService()
+        storage = ArmStorageService(self._context)
         fake_path = '/tmp/nonexistent_mecharmory_config_12345.json'
         self.assertEqual(storage.load_config(fake_path), {})
         self.assertEqual(storage.load_text_file(fake_path), '')

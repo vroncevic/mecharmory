@@ -24,9 +24,16 @@ from __future__ import annotations
 from tkinter import FLAT, LEFT, Button, Frame, Label, Widget
 from tkinter.ttk import Combobox
 
-from mecharmory.infrastructure.gui.theme import ThemeManager
-from mecharmory.infrastructure.communication.iserial_port_scanner import ISerialPortScanner
-from mecharmory.infrastructure.communication.iserial_preferences import ISerialPreferences
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.serial.serial_panel_style import (
+    SerialPanelStyle
+)
+from mecharmory.infrastructure.communication.iserial_port_scanner import (
+    ISerialPortScanner
+)
+from mecharmory.infrastructure.communication.iserial_preferences import (
+    ISerialPreferences
+)
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -45,10 +52,12 @@ class SerialPortSelector(Frame):
         It defines:
 
             :attributes:
-                | _port_combo - Port dropdown selection widget.
-                | _baud_combo - Baudrate dropdown selection widget.
-                | _scanner - ISerialPortScanner interface.
-                | _preferences - ISerialPreferences interface.
+                | DEFAULT_STYLE - Default visual styling parameters.
+                | _port_combo - Dropdown combobox for available ports.
+                | _baud_combo - Dropdown combobox for baudrate choices.
+                | _scanner - Port discovery interface.
+                | _preferences - Configuration storage interface.
+                | _style - Visual styling configuration reference.
             :methods:
                 | __init__ - Builds port and baudrate widgets.
                 | refresh_ports - Scans ports and selects preference.
@@ -57,16 +66,20 @@ class SerialPortSelector(Frame):
                 | save_preference - Persists current selection to preferences.
     '''
 
+    DEFAULT_STYLE: SerialPanelStyle = SerialPanelStyle()
+
     _port_combo: Combobox
     _baud_combo: Combobox
     _scanner: ISerialPortScanner
     _preferences: ISerialPreferences
+    _style: SerialPanelStyle
 
     def __init__(
         self,
         parent: Widget,
         scanner: ISerialPortScanner,
-        preferences: ISerialPreferences
+        preferences: ISerialPreferences,
+        style: SerialPanelStyle | None = None
     ) -> None:
         '''
             Initializes port and baudrate selector controls.
@@ -74,55 +87,62 @@ class SerialPortSelector(Frame):
             :param parent: Parent container widget.
             :param scanner: ISerialPortScanner interface.
             :param preferences: ISerialPreferences interface.
+            :param style: Optional visual styling configuration.
         '''
         super().__init__(parent, bg=ThemeManager.BG_HEADER)
+        cfg: SerialPanelStyle = style or self.DEFAULT_STYLE
+        self._style = cfg
         self._scanner = scanner
         self._preferences = preferences
 
         # Port Selector
         lbl_port = Label(
             self,
-            text='Port:',
-            font=(ThemeManager.FONT_FAMILY, 9),
+            text=cfg.port_label_text,
+            font=(ThemeManager.FONT_FAMILY, cfg.label_font_size),
             fg=ThemeManager.TEXT_SECONDARY,
             bg=ThemeManager.BG_HEADER
         )
-        lbl_port.pack(side=LEFT, padx=(0, 4))
+        lbl_port.pack(side=LEFT, padx=cfg.label_pad_x)
 
-        self._port_combo = Combobox(self, width=15, state='readonly')
-        self._port_combo.pack(side=LEFT, padx=(0, 6))
+        self._port_combo = Combobox(
+            self,
+            width=cfg.port_combo_width,
+            state=cfg.combo_state
+        )
+        self._port_combo.pack(side=LEFT, padx=cfg.combo_pad_x)
 
         btn_scan = Button(
             self,
-            text='Scan',
-            font=(ThemeManager.FONT_FAMILY, 8),
+            text=cfg.btn_scan_text,
+            font=(ThemeManager.FONT_FAMILY, cfg.btn_scan_font_size),
             bg=ThemeManager.BG_PANEL,
             fg=ThemeManager.TEXT_PRIMARY,
             relief=FLAT,
-            padx=8,
-            pady=2,
+            padx=cfg.btn_scan_pad_x,
+            pady=cfg.btn_scan_pad_y,
             command=self.refresh_ports
         )
-        btn_scan.pack(side=LEFT, padx=(0, 12))
+        btn_scan.pack(side=LEFT, padx=cfg.btn_scan_spacing_x)
 
         # Baudrate Selector
         lbl_baud = Label(
             self,
-            text='Baud:',
-            font=(ThemeManager.FONT_FAMILY, 9),
+            text=cfg.baud_label_text,
+            font=(ThemeManager.FONT_FAMILY, cfg.label_font_size),
             fg=ThemeManager.TEXT_SECONDARY,
             bg=ThemeManager.BG_HEADER
         )
-        lbl_baud.pack(side=LEFT, padx=(0, 4))
+        lbl_baud.pack(side=LEFT, padx=cfg.label_pad_x)
 
         self._baud_combo = Combobox(
             self,
-            width=8,
-            values=('9600', '19200', '38400', '57600', '115200', '230400', '921600'),
-            state='readonly'
+            width=cfg.baud_combo_width,
+            values=[str(b) for b in cfg.baudrates],
+            state=cfg.combo_state
         )
-        self._baud_combo.set('115200')
-        self._baud_combo.pack(side=LEFT, padx=(0, 12))
+        self._baud_combo.set(str(cfg.default_baud))
+        self._baud_combo.pack(side=LEFT, padx=cfg.baud_combo_spacing_x)
 
         self.refresh_ports()
 
@@ -133,7 +153,7 @@ class SerialPortSelector(Frame):
         saved_port, saved_baud = self._preferences.load_preference()
         ports: list[str] = self._scanner.get_available_ports()
         if not ports:
-            ports = ['/dev/ttyACM0', '/dev/ttyUSB0']
+            ports = list(self._style.fallback_ports)
 
         self._port_combo['values'] = ports
         if saved_port in ports:
@@ -160,7 +180,7 @@ class SerialPortSelector(Frame):
         try:
             return int(self._baud_combo.get())
         except ValueError:
-            return 115200
+            return self.DEFAULT_STYLE.default_baud
 
     def save_preference(self) -> None:
         '''

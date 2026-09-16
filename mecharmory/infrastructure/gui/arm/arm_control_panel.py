@@ -16,30 +16,25 @@ Copyright
     You should have received a copy of the GNU General Public License along
     with this program. If not, see <http://www.gnu.org/licenses/>.
 Info
-    Panel grouping all 6 joint control widgets and global motion action buttons.
+    Composite container for robotic arm joint sliders and header action buttons.
 '''
 
 from __future__ import annotations
 
 from tkinter import (
-    FLAT,
-    LEFT,
-    RIGHT,
     TOP,
     X,
-    Button,
     Frame,
-    Label,
     Widget
 )
 from typing import Callable
 
 from mecharmory.core.model.kinematics.joint_id import JointId
 from mecharmory.core.model.arm.iarm_model import IArmModel
-from mecharmory.infrastructure.gui.theme import ThemeManager
-from mecharmory.infrastructure.gui.joint.joint_control_widget import (
-    JointControlWidget
-)
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.arm.arm_panel_style import ArmPanelStyle
+from mecharmory.infrastructure.gui.arm.arm_control_header import ArmControlHeader
+from mecharmory.infrastructure.gui.arm.arm_joint_list import ArmJointList
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -53,28 +48,23 @@ __status__ = 'Updated'
 
 class ArmControlPanel(Frame):
     '''
-        Panel managing all 6 joint sliders and global emergency stop / home actions.
+        Composite panel managing header actions and joint slider controls.
 
         It defines:
 
             :attributes:
-                | _model - IArmModel interface.
-                | _joint_widgets - Mapping of JointId to JointControlWidget.
-                | _on_joint_command - Dispatched angle change handler.
-                | _on_home - Dispatched home action.
-                | _on_stop - Dispatched emergency stop action.
-                | _on_status - Dispatched query status action.
+                | DEFAULT_STYLE - Default visual styling parameters.
+                | _header - Header toolbar containing title and global action buttons.
+                | _joint_list - Container holding 6 joint slider control widgets.
             :methods:
-                | __init__ - Builds header toolbar and 6 joint control rows.
-                | refresh_telemetry - Calls update_display on each child joint widget.
+                | __init__ - Composes header toolbar and joint list sub-widgets.
+                | refresh_telemetry - Dispatches display updates across all joint widgets.
     '''
 
-    _model: IArmModel
-    _joint_widgets: dict[JointId, JointControlWidget]
-    _on_joint_command: Callable[[JointId, float], None]
-    _on_home: Callable[[], None]
-    _on_stop: Callable[[], None]
-    _on_status: Callable[[], None]
+    DEFAULT_STYLE: ArmPanelStyle = ArmPanelStyle()
+
+    _header: ArmControlHeader
+    _joint_list: ArmJointList
 
     def __init__(
         self,
@@ -83,7 +73,8 @@ class ArmControlPanel(Frame):
         on_joint_command: Callable[[JointId, float], None],
         on_home: Callable[[], None],
         on_stop: Callable[[], None],
-        on_status: Callable[[], None]
+        on_status: Callable[[], None],
+        style: ArmPanelStyle | None = None
     ) -> None:
         '''
             Initializes arm control panel.
@@ -94,91 +85,35 @@ class ArmControlPanel(Frame):
             :param on_home: Home action callback.
             :param on_stop: Stop action callback.
             :param on_status: Query status callback.
+            :param style: Optional styling configuration.
         '''
-        super().__init__(parent, bg=ThemeManager.BG_PANEL, padx=12, pady=10)
-        self._model = model
-        self._on_joint_command = on_joint_command
-        self._on_home = on_home
-        self._on_stop = on_stop
-        self._on_status = on_status
-        self._joint_widgets = {}
-
-        # Header with Global Actions
-        header = Frame(self, bg=ThemeManager.BG_PANEL)
-        header.pack(fill=X, side=TOP, pady=(0, 10))
-
-        lbl_section = Label(
-            header,
-            text='JOINT CONTROLS',
-            font=(ThemeManager.FONT_FAMILY, 10, 'bold'),
-            fg=ThemeManager.TEXT_PRIMARY,
-            bg=ThemeManager.BG_PANEL
+        cfg: ArmPanelStyle = style or self.DEFAULT_STYLE
+        super().__init__(
+            parent,
+            bg=ThemeManager.BG_PANEL,
+            padx=cfg.panel_pad_x,
+            pady=cfg.panel_pad_y
         )
-        lbl_section.pack(side=LEFT)
 
-        # Stop Button (Right)
-        btn_stop = Button(
-            header,
-            text='EMERGENCY STOP',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
-            bg=ThemeManager.ACCENT_RED,
-            fg='#ffffff',
-            relief=FLAT,
-            padx=10,
-            pady=3,
-            command=self._on_stop
+        self._header = ArmControlHeader(
+            self,
+            on_status=on_status,
+            on_home=on_home,
+            on_stop=on_stop,
+            style=cfg
         )
-        btn_stop.pack(side=RIGHT, padx=(6, 0))
+        self._header.pack(fill=X, side=TOP, pady=(0, cfg.header_pad_bottom))
 
-        # Home Button
-        btn_home = Button(
-            header,
-            text='Home All',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
-            bg=ThemeManager.ACCENT_BLUE,
-            fg=ThemeManager.BG_DARK,
-            relief=FLAT,
-            padx=10,
-            pady=3,
-            command=self._on_home
+        self._joint_list = ArmJointList(
+            self,
+            model=model,
+            on_joint_command=on_joint_command,
+            style=cfg
         )
-        btn_home.pack(side=RIGHT, padx=(6, 0))
-
-        # Query Status Button
-        btn_query = Button(
-            header,
-            text='Query Status',
-            font=(ThemeManager.FONT_FAMILY, 8),
-            bg=ThemeManager.BG_CARD,
-            fg=ThemeManager.TEXT_PRIMARY,
-            relief=FLAT,
-            padx=8,
-            pady=3,
-            command=self._on_status
-        )
-        btn_query.pack(side=RIGHT)
-
-        # Create widgets for all 6 joints
-        for jid in (
-            JointId.BASE,
-            JointId.LIFT_1,
-            JointId.LIFT_2,
-            JointId.TUBE_ROLL,
-            JointId.END_PITCH,
-            JointId.TOOL_ROLL
-        ):
-            cfg = self._model.get_config(jid)
-            st = self._model.get_state(jid)
-            widget = JointControlWidget(
-                self,
-                config=cfg,
-                state=st,
-                on_angle_change=self._on_joint_command
-            )
-            widget.pack(fill=X, side=TOP, pady=3)
-            self._joint_widgets[jid] = widget
+        self._joint_list.pack(fill=X, side=TOP)
 
     def refresh_telemetry(self) -> None:
-        '''Updates visual displays across all joint subwidgets.'''
-        for widget in self._joint_widgets.values():
-            widget.update_display()
+        '''
+            Updates visual displays across all joint subwidgets.
+        '''
+        self._joint_list.refresh_telemetry()

@@ -22,7 +22,9 @@ Info
 from __future__ import annotations
 
 from typing import TypedDict
+
 from ats_utilities.option.imanager import IOptionManager
+
 from mecharmory.core.service.iservice import IService
 from mecharmory.infrastructure.gui.igui_window import IGuiWindow
 

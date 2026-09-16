@@ -200,35 +200,58 @@ Tool structure
          │   │   └── scheme.json
          │   ├── gui/
          │   │   ├── arm/
+         │   │   │   ├── arm_control_header.py
          │   │   │   ├── arm_control_panel.py
+         │   │   │   ├── arm_joint_list.py
+         │   │   │   ├── arm_panel_style.py
          │   │   │   └── __init__.py
          │   │   ├── canvas/
+         │   │   │   ├── arm_background_painter.py
          │   │   │   ├── arm_canvas_painter.py
          │   │   │   ├── arm_canvas_preview.py
+         │   │   │   ├── arm_canvas_style.py
+         │   │   │   ├── arm_hud_painter.py
          │   │   │   ├── arm_kinematics_2d.py
+         │   │   │   ├── arm_linkage_painter.py
+         │   │   │   ├── arm_pedestal_painter.py
          │   │   │   ├── arm_pose_2d.py
+         │   │   │   ├── arm_tool_painter.py
+         │   │   │   ├── arm_tube_painter.py
          │   │   │   └── __init__.py
          │   │   ├── console/
+         │   │   │   ├── console_command_entry.py
+         │   │   │   ├── console_header_toolbar.py
+         │   │   │   ├── console_log_viewer.py
          │   │   │   ├── console_panel.py
+         │   │   │   ├── console_panel_style.py
          │   │   │   └── __init__.py
          │   │   ├── gui_event_mediator.py
          │   │   ├── gui_window.py
+         │   │   ├── gui_window_style.py
          │   │   ├── igui_window.py
          │   │   ├── __init__.py
          │   │   ├── joint/
          │   │   │   ├── __init__.py
          │   │   │   ├── joint_control_widget.py
          │   │   │   ├── joint_entry_control.py
-         │   │   │   └── joint_step_buttons.py
+         │   │   │   ├── joint_step_buttons.py
+         │   │   │   └── joint_widget_style.py
          │   │   ├── preset/
          │   │   │   ├── __init__.py
-         │   │   │   └── preset_panel.py
+         │   │   │   ├── preset_panel.py
+         │   │   │   └── preset_panel_style.py
          │   │   ├── serial/
          │   │   │   ├── __init__.py
          │   │   │   ├── serial_bar.py
+         │   │   │   ├── serial_panel_style.py
          │   │   │   ├── serial_port_selector.py
          │   │   │   └── serial_status_badge.py
-         │   │   └── theme.py
+         │   │   ├── theme/
+         │   │   │   ├── __init__.py
+         │   │   │   └── theme_manager.py
+         │   │   └── workspace/
+         │   │       ├── arm_workspace.py
+         │   │       └── __init__.py
          │   ├── __init__.py
          │   └── storage/
          │       ├── arm_storage_service.py
@@ -248,7 +271,7 @@ Tool structure
              ├── registry.py
              └── validator.py
 
-     28 directories, 109 files
+     30 directories, 130 files
 
 ✨ Features
 -----------

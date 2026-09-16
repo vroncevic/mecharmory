@@ -23,8 +23,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+
 from ats_utilities.option.imanager import IOptionManager
 from ats_utilities.utils.reflection import instance_to_dict
+
 from mecharmory.core.service.iservice import IService
 from mecharmory.infrastructure.command.command import CommandBundle
 

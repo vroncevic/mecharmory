@@ -22,7 +22,9 @@ Info
 from __future__ import annotations
 
 from collections.abc import Mapping
+
 from ats_utilities.utils.reflection import to_str
+
 from mecharmory.infrastructure.command.icommand_definition import ICommandDefinition
 from mecharmory.core.service.iservice import IService
 from mecharmory.infrastructure.gui.igui_window import IGuiWindow
@@ -83,17 +85,20 @@ class StudioCommandExecutor:
 
         try:
             virtual_mode: object = params.get('virtual')
+
             if virtual_mode is not None and isinstance(virtual_mode, str):
                 is_virt: bool = virtual_mode.lower() == 'enable'
                 service.get_serial_service().set_virtual_mode(is_virt)
 
             port_val: object = params.get('port')
+
             if port_val is not None and isinstance(port_val, str) and port_val:
                 baud_val: object = params.get('baudrate')
                 baud: int = int(baud_val) if isinstance(baud_val, (int, str)) and str(baud_val).isdigit() else 115200
                 service.get_serial_service().connect(port_val, baud)
 
             file_path: object = params.get('file')
+
             if file_path is not None and isinstance(file_path, str) and file_path:
                 content: str = service.get_storage().load_text_file(file_path)
                 if content:
@@ -103,6 +108,7 @@ class StudioCommandExecutor:
                             service.get_serial_service().send_line(cmd_line)
 
             self.gui.start()
+
             return {'returncode': 0, 'stdout': 'Mecharmory Studio closed successfully', 'stderr': ''}
 
         except Exception as exc:

@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    mecharmory.infrastructure.gui.serial.serial_bar
+   mecharmory.infrastructure.gui.serial.serial_panel_style
    mecharmory.infrastructure.gui.serial.serial_port_selector
    mecharmory.infrastructure.gui.serial.serial_status_badge
 

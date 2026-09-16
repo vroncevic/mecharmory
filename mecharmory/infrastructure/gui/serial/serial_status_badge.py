@@ -16,7 +16,7 @@ Copyright
     You should have received a copy of the GNU General Public License along
     with this program. If not, see <http://www.gnu.org/licenses/>.
 Info
-    Connection status indicator badge and connect/disconnect action button.
+    Status badge and connection toggle button for serial toolbar.
 '''
 
 from __future__ import annotations
@@ -24,7 +24,10 @@ from __future__ import annotations
 from tkinter import FLAT, Button, Label, Widget
 from typing import Callable
 
-from mecharmory.infrastructure.gui.theme import ThemeManager
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.serial.serial_panel_style import (
+    SerialPanelStyle
+)
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -43,6 +46,8 @@ class SerialStatusBadge:
         It defines:
 
             :attributes:
+                | DEFAULT_STYLE - Default visual styling parameters.
+                | _style - SerialPanelStyle configuration reference.
                 | _btn_connect - Connect / Disconnect button.
                 | _lbl_status - Real-time connection status label.
             :methods:
@@ -52,36 +57,42 @@ class SerialStatusBadge:
                 | get_label - Accesses status label instance.
     '''
 
+    DEFAULT_STYLE: SerialPanelStyle = SerialPanelStyle()
+
+    _style: SerialPanelStyle
     _btn_connect: Button
     _lbl_status: Label
 
     def __init__(
         self,
         parent: Widget,
-        on_connect_click: Callable[[], None]
+        on_connect_click: Callable[[], None],
+        style: SerialPanelStyle | None = None
     ) -> None:
         '''
             Initializes connect button and status label.
 
             :param parent: Parent container widget.
             :param on_connect_click: Connect click action handler.
+            :param style: Optional visual styling configuration.
         '''
+        self._style = style or self.DEFAULT_STYLE
         self._btn_connect = Button(
             parent,
-            text='Connect',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
+            text=self._style.btn_connect_text,
+            font=(ThemeManager.FONT_FAMILY, self._style.badge_font_size, 'bold'),
             bg=ThemeManager.ACCENT_GREEN,
             fg=ThemeManager.BG_DARK,
             relief=FLAT,
-            padx=14,
-            pady=3,
+            padx=self._style.badge_pad_x,
+            pady=self._style.badge_pad_y,
             command=on_connect_click
         )
 
         self._lbl_status = Label(
             parent,
-            text='Offline',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
+            text=self._style.status_offline_text,
+            font=(ThemeManager.FONT_FAMILY, self._style.badge_font_size, 'bold'),
             fg=ThemeManager.ACCENT_RED,
             bg=ThemeManager.BG_HEADER
         )
@@ -95,9 +106,9 @@ class SerialStatusBadge:
         '''
         if connected:
             self._btn_connect.config(
-                text='Disconnect',
+                text=self._style.btn_disconnect_text,
                 bg=ThemeManager.ACCENT_RED,
-                fg='#ffffff'
+                fg=self._style.btn_disconnect_fg
             )
             self._lbl_status.config(
                 text=desc,
@@ -105,12 +116,12 @@ class SerialStatusBadge:
             )
         else:
             self._btn_connect.config(
-                text='Connect',
+                text=self._style.btn_connect_text,
                 bg=ThemeManager.ACCENT_GREEN,
                 fg=ThemeManager.BG_DARK
             )
             self._lbl_status.config(
-                text='Disconnected',
+                text=self._style.status_disconnected_text,
                 fg=ThemeManager.ACCENT_RED
             )
 

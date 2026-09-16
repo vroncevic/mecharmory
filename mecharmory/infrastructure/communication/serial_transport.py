@@ -22,6 +22,7 @@ Info
 from __future__ import annotations
 
 from threading import Lock
+
 from serial import Serial, SerialException
 
 __author__ = 'Vladimir Roncevic'
@@ -78,8 +79,10 @@ class SerialTransport:
                     write_timeout=0.5
                 )
             return True
+
         except (SerialException, OSError, ValueError):
             self._serial = None
+
             return False
 
     def close(self) -> None:
@@ -89,6 +92,7 @@ class SerialTransport:
                 try:
                     if self._serial.is_open:
                         self._serial.close()
+
                 except (SerialException, OSError):
                     pass
                 finally:
@@ -106,10 +110,13 @@ class SerialTransport:
                 return False
 
             payload: bytes = f'{line.strip()}\n'.encode('utf-8')
+
             try:
                 self._serial.write(payload)
                 self._serial.flush()
+
                 return True
+
             except (SerialException, OSError):
                 return False
 
@@ -126,8 +133,10 @@ class SerialTransport:
             try:
                 if self._serial.in_waiting > 0:
                     raw: bytes = self._serial.readline()
+
                     if raw:
                         return raw.decode('utf-8', errors='replace').strip()
+
             except (SerialException, OSError):
                 return None
 

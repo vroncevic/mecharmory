@@ -37,6 +37,15 @@ __status__ = 'Updated'
 class ITransport(Protocol):
     '''
         Defines low-level transport operations.
+
+        It defines:
+
+            :methods:
+                | open - Opens communication channel.
+                | close - Closes active communication channel.
+                | write_line - Transmits single ASCII line.
+                | read_line - Reads single ASCII line or returns None if no data ready.
+                | is_open - Checks whether connection channel is active.
     '''
 
     def open(self, endpoint: str, baudrate: int) -> bool:

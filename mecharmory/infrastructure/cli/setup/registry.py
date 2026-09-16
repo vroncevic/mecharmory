@@ -72,6 +72,7 @@ class CLIBundleRegistry:
         )
 
         CLIBundleValidator.validate(bundle)
+
         return bundle
 
     @classmethod

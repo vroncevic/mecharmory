@@ -22,6 +22,7 @@ Info
 from __future__ import annotations
 
 from collections.abc import Sequence
+
 from ats_utilities.option.command.data import OptionData
 from ats_utilities.utils.reflection import to_str
 

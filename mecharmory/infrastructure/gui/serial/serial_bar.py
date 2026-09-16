@@ -34,11 +34,22 @@ from tkinter import (
 )
 from typing import Callable
 
-from mecharmory.infrastructure.gui.theme import ThemeManager
-from mecharmory.infrastructure.communication.iserial_port_scanner import ISerialPortScanner
-from mecharmory.infrastructure.communication.iserial_preferences import ISerialPreferences
-from mecharmory.infrastructure.communication.serial_port_scanner import SerialPortScanner
-from mecharmory.infrastructure.communication.serial_preferences import SerialPreferences
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.serial.serial_panel_style import (
+    SerialPanelStyle
+)
+from mecharmory.infrastructure.communication.iserial_port_scanner import (
+    ISerialPortScanner
+)
+from mecharmory.infrastructure.communication.iserial_preferences import (
+    ISerialPreferences
+)
+from mecharmory.infrastructure.communication.serial_port_scanner import (
+    SerialPortScanner
+)
+from mecharmory.infrastructure.communication.serial_preferences import (
+    SerialPreferences
+)
 from mecharmory.infrastructure.gui.serial.serial_port_selector import (
     SerialPortSelector
 )
@@ -50,7 +61,7 @@ __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
 __credits__ = ['Vladimir Roncevic', 'Python Software Foundation']
 __license__ = 'https://github.com/vroncevic/mecharmory/blob/dev/LICENSE'
-__version__ = '1.0.1'
+__version__ = '1.0.0'
 __maintainer__ = 'Vladimir Roncevic'
 __email__ = 'elektron.ronca@gmail.com'
 __status__ = 'Updated'
@@ -63,6 +74,7 @@ class SerialBar(Frame):
         It defines:
 
             :attributes:
+                | DEFAULT_STYLE - Default visual styling parameters.
                 | _selector - SerialPortSelector sub-widget.
                 | _badge - SerialStatusBadge sub-widget.
                 | _virtual_var - Virtual mode toggle state variable.
@@ -78,6 +90,8 @@ class SerialBar(Frame):
                 | _handle_ping_click - Dispatches heartbeat ping.
     '''
 
+    DEFAULT_STYLE: SerialPanelStyle = SerialPanelStyle()
+
     _selector: SerialPortSelector
     _badge: SerialStatusBadge
     _virtual_var: BooleanVar
@@ -92,7 +106,8 @@ class SerialBar(Frame):
         on_virtual_toggle: Callable[[bool], None] | None = None,
         on_ping: Callable[[], None] | None = None,
         scanner: ISerialPortScanner | None = None,
-        preferences: ISerialPreferences | None = None
+        preferences: ISerialPreferences | None = None,
+        style: SerialPanelStyle | None = None
     ) -> None:
         '''
             Initializes serial toolbar widgets.
@@ -103,8 +118,16 @@ class SerialBar(Frame):
             :param on_ping: Ping heartbeat callback.
             :param scanner: Optional port scanner abstraction.
             :param preferences: Optional serial preferences abstraction.
+            :param style: Optional visual styling configuration.
         '''
-        super().__init__(parent, bg=ThemeManager.BG_HEADER, height=44, padx=12, pady=6)
+        cfg: SerialPanelStyle = style or self.DEFAULT_STYLE
+        super().__init__(
+            parent,
+            bg=ThemeManager.BG_HEADER,
+            height=cfg.bar_height,
+            padx=cfg.bar_pad_x,
+            pady=cfg.bar_pad_y
+        )
         self._on_connect_toggle = on_connect_toggle
         self._on_virtual_toggle = on_virtual_toggle
         self._on_ping = on_ping
@@ -115,28 +138,28 @@ class SerialBar(Frame):
         # Title Label
         lbl_title = Label(
             self,
-            text='Mecharmo 6-DOF',
-            font=(ThemeManager.FONT_FAMILY, 11, 'bold'),
+            text=cfg.title_text,
+            font=(ThemeManager.FONT_FAMILY, cfg.title_font_size, 'bold'),
             fg=ThemeManager.ACCENT_CYAN,
             bg=ThemeManager.BG_HEADER
         )
-        lbl_title.pack(side=LEFT, padx=(0, 15))
+        lbl_title.pack(side=LEFT, padx=cfg.title_pad_x)
 
         # Port and Baudrate Selector
-        self._selector = SerialPortSelector(self, port_scanner, user_prefs)
+        self._selector = SerialPortSelector(self, port_scanner, user_prefs, style=cfg)
         self._selector.pack(side=LEFT)
 
         # Status Badge & Connect Button
-        self._badge = SerialStatusBadge(self, self._handle_connect_click)
-        self._badge.get_button().pack(side=LEFT, padx=(0, 12))
+        self._badge = SerialStatusBadge(self, self._handle_connect_click, style=cfg)
+        self._badge.get_button().pack(side=LEFT, padx=cfg.connect_btn_spacing_x)
 
         # Virtual Emulation Toggle
         self._virtual_var = BooleanVar(value=False)
         chk_virtual = Checkbutton(
             self,
-            text='Virtual Firmware Mode',
+            text=cfg.virtual_mode_text,
             variable=self._virtual_var,
-            font=(ThemeManager.FONT_FAMILY, 9),
+            font=(ThemeManager.FONT_FAMILY, cfg.virtual_font_size),
             fg=ThemeManager.ACCENT_YELLOW,
             bg=ThemeManager.BG_HEADER,
             selectcolor=ThemeManager.BG_DARK,
@@ -144,18 +167,18 @@ class SerialBar(Frame):
             activeforeground=ThemeManager.ACCENT_YELLOW,
             command=self._handle_virtual_toggle
         )
-        chk_virtual.pack(side=LEFT, padx=(0, 12))
+        chk_virtual.pack(side=LEFT, padx=cfg.virtual_pad_x)
 
         # Ping Button
         btn_ping = Button(
             self,
-            text='Ping',
-            font=(ThemeManager.FONT_FAMILY, 8),
+            text=cfg.btn_ping_text,
+            font=(ThemeManager.FONT_FAMILY, cfg.btn_ping_font_size),
             bg=ThemeManager.BG_PANEL,
             fg=ThemeManager.ACCENT_BLUE,
             relief=FLAT,
-            padx=8,
-            pady=2,
+            padx=cfg.btn_ping_pad_x,
+            pady=cfg.btn_ping_pad_y,
             command=self._handle_ping_click
         )
         btn_ping.pack(side=LEFT, padx=(0, 12))

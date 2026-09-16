@@ -38,7 +38,10 @@ from typing import Callable
 from mecharmory.core.model.kinematics.joint_id import JointId
 from mecharmory.core.model.kinematics.joint_config import JointConfig
 from mecharmory.core.model.kinematics.joint_state import JointState
-from mecharmory.infrastructure.gui.theme import ThemeManager
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.joint.joint_widget_style import (
+    JointWidgetStyle
+)
 from mecharmory.infrastructure.gui.joint.joint_step_buttons import (
     JointStepButtons
 )
@@ -50,7 +53,7 @@ __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
 __credits__ = ['Vladimir Roncevic', 'Python Software Foundation']
 __license__ = 'https://github.com/vroncevic/mecharmory/blob/dev/LICENSE'
-__version__ = '1.0.1'
+__version__ = '1.0.0'
 __maintainer__ = 'Vladimir Roncevic'
 __email__ = 'elektron.ronca@gmail.com'
 __status__ = 'Updated'
@@ -63,6 +66,7 @@ class JointControlWidget(Frame):
         It defines:
 
             :attributes:
+                | DEFAULT_STYLE - Default visual styling parameters.
                 | _config - Static JointConfig parameters.
                 | _state - Dynamic JointState model reference.
                 | _on_angle_change - Callback dispatched when new angle is set.
@@ -70,6 +74,7 @@ class JointControlWidget(Frame):
                 | _lbl_current - Label showing real-time feedback position.
                 | _slider - Horizontal Scale slider.
                 | _entry_ctrl - Direct entry and set button component.
+                | _style - Visual styling configuration reference.
             :methods:
                 | __init__ - Builds widget hierarchy and binds events.
                 | update_display - Refreshes visual labels to match model state.
@@ -78,6 +83,8 @@ class JointControlWidget(Frame):
                 | _on_entry_apply - Applies manually typed angle from entry box.
     '''
 
+    DEFAULT_STYLE: JointWidgetStyle = JointWidgetStyle()
+
     _config: JointConfig
     _state: JointState
     _on_angle_change: Callable[[JointId, float], None]
@@ -85,13 +92,15 @@ class JointControlWidget(Frame):
     _lbl_current: Label
     _slider: Scale
     _entry_ctrl: JointEntryControl
+    _style: JointWidgetStyle
 
     def __init__(
         self,
         parent: Widget,
         config: JointConfig,
         state: JointState,
-        on_angle_change: Callable[[JointId, float], None]
+        on_angle_change: Callable[[JointId, float], None],
+        style: JointWidgetStyle | None = None
     ) -> None:
         '''
             Initializes joint widget.
@@ -100,28 +109,31 @@ class JointControlWidget(Frame):
             :param config: Joint configuration.
             :param state: Joint state.
             :param on_angle_change: Dispatched angle change handler.
+            :param style: Optional visual styling configuration.
         '''
+        cfg: JointWidgetStyle = style or self.DEFAULT_STYLE
         super().__init__(
             parent,
             bg=ThemeManager.BG_CARD,
-            padx=10,
-            pady=8,
-            highlightthickness=1,
+            padx=cfg.card_pad_x,
+            pady=cfg.card_pad_y,
+            highlightthickness=cfg.card_border_width,
             highlightbackground=ThemeManager.BORDER_COLOR
         )
         self._config = config
         self._state = state
         self._on_angle_change = on_angle_change
+        self._style = cfg
         self._slider_var = DoubleVar(value=state.target_angle)
 
         # Header Frame
         header = Frame(self, bg=ThemeManager.BG_CARD)
-        header.pack(fill=X, side=TOP, pady=(0, 4))
+        header.pack(fill=X, side=TOP, pady=(0, cfg.header_pad_bottom))
 
         lbl_name = Label(
             header,
             text=f'{self._config.name}',
-            font=(ThemeManager.FONT_FAMILY, 9, 'bold'),
+            font=(ThemeManager.FONT_FAMILY, cfg.name_font_size, 'bold'),
             fg=ThemeManager.ACCENT_CYAN,
             bg=ThemeManager.BG_CARD
         )
@@ -129,8 +141,11 @@ class JointControlWidget(Frame):
 
         lbl_range = Label(
             header,
-            text=f' [{self._config.min_deg:.0f}° - {self._config.max_deg:.0f}°]',
-            font=(ThemeManager.FONT_FAMILY, 8),
+            text=cfg.range_template.format(
+                min_deg=self._config.min_deg,
+                max_deg=self._config.max_deg
+            ),
+            font=(ThemeManager.FONT_FAMILY, cfg.range_font_size),
             fg=ThemeManager.TEXT_SECONDARY,
             bg=ThemeManager.BG_CARD
         )
@@ -138,8 +153,8 @@ class JointControlWidget(Frame):
 
         self._lbl_current = Label(
             header,
-            text=f'Pos: {self._state.current_angle:.1f}°',
-            font=(ThemeManager.FONT_MONO, 9, 'bold'),
+            text=cfg.pos_template.format(angle=self._state.current_angle),
+            font=(ThemeManager.FONT_MONO, cfg.pos_font_size, 'bold'),
             fg=ThemeManager.ACCENT_GREEN,
             bg=ThemeManager.BG_CARD
         )
@@ -149,13 +164,13 @@ class JointControlWidget(Frame):
         ctrl = Frame(self, bg=ThemeManager.BG_CARD)
         ctrl.pack(fill=X, side=TOP)
 
-        JointStepButtons.pack_negative_buttons(ctrl, self._step_angle)
+        JointStepButtons.pack_negative_buttons(ctrl, self._step_angle, cfg)
 
         self._slider = Scale(
             ctrl,
             from_=self._config.min_deg,
             to=self._config.max_deg,
-            resolution=0.5,
+            resolution=cfg.slider_resolution,
             orient=HORIZONTAL,
             variable=self._slider_var,
             bg=ThemeManager.BG_CARD,
@@ -166,14 +181,15 @@ class JointControlWidget(Frame):
             showvalue=False,
             command=self._on_slider_moved
         )
-        self._slider.pack(side=LEFT, fill=X, expand=True, padx=4)
+        self._slider.pack(side=LEFT, fill=X, expand=True, padx=cfg.slider_pad_x)
 
-        JointStepButtons.pack_positive_buttons(ctrl, self._step_angle)
+        JointStepButtons.pack_positive_buttons(ctrl, self._step_angle, cfg)
 
         self._entry_ctrl = JointEntryControl(
             ctrl,
             on_apply=self._on_entry_apply,
-            initial_val=state.target_angle
+            initial_val=state.target_angle,
+            style=cfg
         )
         self._entry_ctrl.pack(side=LEFT)
 
@@ -182,10 +198,10 @@ class JointControlWidget(Frame):
             Updates real-time positions from model.
         '''
         self._lbl_current.config(
-            text=f'Pos: {self._state.current_angle:.1f}°',
+            text=self._style.pos_template.format(angle=self._state.current_angle),
             fg=ThemeManager.ACCENT_YELLOW if self._state.is_moving else ThemeManager.ACCENT_GREEN
         )
-        if abs(self._slider_var.get() - self._state.target_angle) > 0.4:
+        if abs(self._slider_var.get() - self._state.target_angle) > self._style.sync_threshold_deg:
             self._slider_var.set(self._state.target_angle)
             self._entry_ctrl.set_value(self._state.target_angle)
 

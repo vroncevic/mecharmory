@@ -22,12 +22,12 @@ Info
 from __future__ import annotations
 
 from pathlib import Path
+
 from ats_utilities.config_io.loader.engine import Loader
 from ats_utilities.config_io.setup.factory import ConfigIOBundleFactory
 from ats_utilities.config_io.setup.options import ConfigIOBundleOptions
 from ats_utilities.config_io.storer.engine import Storer
 from ats_utilities.context.bundle import ContextBundle
-from ats_utilities.context.factory import ContextBundleFactory
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -49,7 +49,7 @@ class ArmStorageService:
             :attributes:
                 | _context - The ContextBundle for ATS configuration I/O operations.
             :methods:
-                | __init__ - Initializes the arm storage service with optional context.
+                | __init__ - Initializes the arm storage service with context bundle.
                 | is_initialized - Confirms storage service operational readiness.
                 | save_config - Saves configuration dictionary to JSON file path.
                 | load_config - Loads configuration dictionary from JSON file path.
@@ -59,13 +59,13 @@ class ArmStorageService:
 
     _context: ContextBundle
 
-    def __init__(self, context_bundle: ContextBundle | None = None) -> None:
+    def __init__(self, context_bundle: ContextBundle) -> None:
         '''
-            Initializes the arm storage service with optional context bundle.
+            Initializes the arm storage service with application context bundle.
 
-            :param context_bundle: Optional ATS ContextBundle instance.
+            :param context_bundle: ATS ContextBundle instance.
         '''
-        self._context = context_bundle or ContextBundleFactory.create_bundle()
+        self._context = context_bundle
 
     def is_initialized(self) -> bool:
         '''
@@ -103,6 +103,7 @@ class ArmStorageService:
             :return: Loaded configuration dictionary, or empty dict if not found.
         '''
         target_path: Path = Path(filepath).resolve()
+
         if not target_path.is_file():
             return {}
 
@@ -114,8 +115,10 @@ class ArmStorageService:
         )
         loader = Loader(bundle)
         loaded_data = loader.load_configuration()
+
         if isinstance(loaded_data, dict):
             return loaded_data
+
         return {}
 
     def save_text_file(self, content: str, filepath: str) -> None:
@@ -127,6 +130,7 @@ class ArmStorageService:
         '''
         target_path: Path = Path(filepath).resolve()
         target_path.parent.mkdir(parents=True, exist_ok=True)
+
         with open(target_path, 'w', encoding='utf-8') as file_handle:
             file_handle.write(content)
 
@@ -138,7 +142,9 @@ class ArmStorageService:
             :return: File text content string.
         '''
         target_path: Path = Path(filepath).resolve()
+
         if not target_path.is_file():
             return ''
+
         with open(target_path, 'r', encoding='utf-8') as file_handle:
             return file_handle.read()

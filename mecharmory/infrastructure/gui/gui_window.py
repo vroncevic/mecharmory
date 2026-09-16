@@ -22,28 +22,22 @@ Info
 from __future__ import annotations
 
 from queue import Queue, Empty
-from tkinter import (
-    BOTH,
-    LEFT,
-    RIGHT,
-    TOP,
-    X,
-    Frame,
-    Tk
-)
+from typing import Final
+from tkinter import BOTH, BOTTOM, TOP, X, Frame, Tk
+
 from mecharmory.core.model.communication.serial_message import SerialMessage
 from mecharmory.core.service.arm.iarm_controller_service import (
     IArmControllerService
 )
 from mecharmory.core.service.serial.iserial_service import ISerialService
-from mecharmory.infrastructure.gui.theme import ThemeManager
-from mecharmory.infrastructure.gui.gui_event_mediator import GuiEventMediator
-from mecharmory.infrastructure.gui.serial.serial_bar import SerialBar
-from mecharmory.infrastructure.gui.arm.arm_control_panel import ArmControlPanel
-from mecharmory.infrastructure.gui.preset.preset_panel import PresetPanel
-from mecharmory.infrastructure.gui.canvas.arm_canvas_preview import (
-    ArmCanvasPreview
+from mecharmory.infrastructure.communication.iserial_preferences import (
+    ISerialPreferences
 )
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
+from mecharmory.infrastructure.gui.gui_event_mediator import GuiEventMediator
+from mecharmory.infrastructure.gui.gui_window_style import GuiWindowStyle
+from mecharmory.infrastructure.gui.serial.serial_bar import SerialBar
+from mecharmory.infrastructure.gui.workspace.arm_workspace import ArmWorkspace
 from mecharmory.infrastructure.gui.console.console_panel import ConsolePanel
 
 __author__ = 'Vladimir Roncevic'
@@ -63,50 +57,58 @@ class GuiWindow:
         It defines:
 
             :attributes:
-                | _root - Primary Tkinter root window.
-                | _arm_service - IArmControllerService instance.
-                | _serial_service - ISerialService instance.
-                | _ui_queue - Queue decoupling background serial threads from Tkinter main thread.
-                | _mediator - GuiEventMediator coordinating events.
-                | _serial_bar - Top connection toolbar.
-                | _control_panel - Joint sliders and global action panel.
-                | _preset_panel - Posture presets toolbar.
-                | _canvas_preview - 2D kinematic schematic visualizer.
-                | _console_panel - Serial monitor and input console.
-                | _is_running - Window display flag.
+                | DEFAULT_STYLE - Default GuiWindowStyle metrics and parameters.
+                | _style - Active GuiWindowStyle styling configuration.
+                | _root - Main Tkinter application window instance.
+                | _arm_service - Manipulator coordination service interface.
+                | _serial_service - Communication bridge service interface.
+                | _preferences - Optional serial preferences interface.
+                | _ui_queue - Thread-safe inter-thread message queue.
+                | _mediator - GuiEventMediator delegating UI events.
+                | _serial_bar - Serial connection toolbar component.
+                | _workspace - Arm workspace component containing controls and canvas.
+                | _console_panel - Console logging and command entry subpanel.
+                | _is_running - Flag indicating whether event loop is active.
             :methods:
-                | __init__ - Configures layouts, frames, and event bindings.
+                | __init__ - Initializes window layout and subpanels.
                 | is_initialized - Confirms operational readiness of window.
-                | start - Enters Tkinter main event loop.
-                | stop - Terminates application.
-                | is_running - Queries lifecycle state.
+                | start - Starts Tkinter event loop.
+                | stop - Terminates application window cleanly.
+                | is_running - Queries whether application event loop is executing.
     '''
 
+    DEFAULT_STYLE: Final[GuiWindowStyle] = GuiWindowStyle()
+    _style: GuiWindowStyle
     _root: Tk
     _arm_service: IArmControllerService
     _serial_service: ISerialService
+    _preferences: ISerialPreferences | None
     _ui_queue: Queue[SerialMessage]
     _mediator: GuiEventMediator
     _serial_bar: SerialBar
-    _control_panel: ArmControlPanel
-    _preset_panel: PresetPanel
-    _canvas_preview: ArmCanvasPreview
+    _workspace: ArmWorkspace
     _console_panel: ConsolePanel
     _is_running: bool
 
     def __init__(
         self,
         arm_service: IArmControllerService,
-        serial_service: ISerialService
+        serial_service: ISerialService,
+        preferences: ISerialPreferences | None = None,
+        style: GuiWindowStyle | None = None
     ) -> None:
         '''
             Initializes window layout and subpanels.
 
             :param arm_service: Manipulator coordination service interface.
             :param serial_service: Communication bridge service interface.
+            :param preferences: Optional serial preferences interface.
+            :param style: Optional window layout configuration.
         '''
+        self._style = style or self.DEFAULT_STYLE
         self._arm_service = arm_service
         self._serial_service = serial_service
+        self._preferences = preferences
         self._ui_queue = Queue()
         self._is_running = False
 
@@ -117,8 +119,8 @@ class GuiWindow:
         )
 
         self._root = Tk()
-        self._root.title('Mecharmory - 6-DOF Robotic Arm Studio')
-        self._root.geometry('1120x760')
+        self._root.title(self._style.window_title)
+        self._root.geometry(self._style.window_geometry)
         self._root.resizable(False, False)
         self._root.configure(bg=ThemeManager.BG_DARK)
 
@@ -140,15 +142,17 @@ class GuiWindow:
     def start(self) -> None:
         '''Starts main event loop.'''
         self._is_running = True
-        self._root.after(40, self._periodic_ui_poll)
+        self._root.after(self._style.poll_interval_ms, self._periodic_ui_poll)
         self._root.mainloop()
 
     def stop(self) -> None:
         '''Terminates window.'''
         self._is_running = False
         self._serial_service.disconnect()
+
         try:
             self._root.destroy()
+
         except Exception:
             pass
 
@@ -158,81 +162,67 @@ class GuiWindow:
 
     def _setup_views(self) -> None:
         '''Builds layout containers and child widgets.'''
-        # Top Serial Bar
         self._serial_bar = SerialBar(
             self._root,
             on_connect_toggle=self._mediator.on_connect_toggle,
             on_virtual_toggle=self._mediator.on_virtual_toggle,
-            on_ping=self._mediator.on_ping
+            on_ping=self._mediator.on_ping,
+            preferences=self._preferences
         )
         self._serial_bar.pack(fill=X, side=TOP)
 
-        # Center Body Frame
-        body = Frame(self._root, bg=ThemeManager.BG_DARK, padx=10, pady=8)
+        body = Frame(
+            self._root,
+            bg=ThemeManager.BG_DARK,
+            padx=self._style.body_pad_x,
+            pady=self._style.body_pad_y
+        )
         body.pack(fill=BOTH, expand=True, side=TOP)
 
-        # Left Column: Joint Controls and Presets
-        left_col = Frame(body, bg=ThemeManager.BG_DARK)
-        left_col.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, 8))
+        self._console_panel = ConsolePanel(body, on_send=self._mediator.on_manual_command)
+        self._console_panel.pack(fill=X, side=BOTTOM)
 
-        self._control_panel = ArmControlPanel(
-            left_col,
+        self._workspace = ArmWorkspace(
+            body,
             model=self._arm_service.get_model(),
-            on_joint_command=self._mediator.on_joint_move,
-            on_home=self._mediator.on_home,
-            on_stop=self._mediator.on_stop,
-            on_status=self._mediator.on_query_status
+            mediator=self._mediator,
+            style=self._style
         )
-        self._control_panel.pack(fill=X, side=TOP, pady=(0, 8))
-
-        self._preset_panel = PresetPanel(
-            left_col,
-            presets=self._arm_service.get_model().get_presets(),
-            on_apply_preset=self._mediator.on_apply_preset
+        self._workspace.pack(
+            fill=BOTH,
+            expand=True,
+            side=TOP,
+            pady=self._style.upper_row_spacing_y
         )
-        self._preset_panel.pack(fill=X, side=TOP)
 
-        # Right Column: Live 2D Preview and Serial Console
-        right_col = Frame(body, bg=ThemeManager.BG_DARK, width=380)
-        right_col.pack(side=RIGHT, fill=BOTH, expand=False)
-        right_col.pack_propagate(False)
-
-        self._canvas_preview = ArmCanvasPreview(
-            right_col,
-            model=self._arm_service.get_model()
-        )
-        self._canvas_preview.pack(fill=X, side=TOP, pady=(0, 8))
-
-        self._console_panel = ConsolePanel(
-            right_col,
-            on_send=self._mediator.on_manual_command
-        )
-        self._console_panel.pack(fill=BOTH, expand=True, side=TOP)
-
-        self._root.protocol('WM_DELETE_WINDOW', self.stop)
+        self._root.protocol(self._style.protocol_delete_window, self.stop)
 
     def _bind_services(self) -> None:
         '''Binds background notification callbacks.'''
         self._serial_service.register_rx_callback(self._mediator.on_serial_rx)
-        self._serial_service.register_status_callback(self._serial_bar.set_connected_state)
+        self._serial_service.register_status_callback(
+            self._serial_bar.set_connected_state
+        )
 
     def _periodic_ui_poll(self) -> None:
         '''Main-thread periodic poll draining communication queue and updating visuals.'''
         if not self._is_running:
             return
 
+        self._drain_ui_queue()
+
+        if self._serial_service.is_connected():
+            self._arm_service.query_status()
+
+        self._workspace.refresh_visuals()
+        self._root.after(self._style.poll_interval_ms, self._periodic_ui_poll)
+
+    def _drain_ui_queue(self) -> None:
+        '''Drains serial communication queue and outputs messages to console.'''
         try:
             while True:
                 msg: SerialMessage = self._ui_queue.get_nowait()
                 self._console_panel.append_message(msg)
+
         except Empty:
             pass
-
-        # Periodic query if connected
-        if self._serial_service.is_connected():
-            self._arm_service.query_status()
-
-        self._canvas_preview.update_pose()
-        self._control_panel.refresh_telemetry()
-
-        self._root.after(40, self._periodic_ui_poll)

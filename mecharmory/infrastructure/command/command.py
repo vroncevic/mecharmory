@@ -22,6 +22,7 @@ Info
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 from mecharmory.infrastructure.command.icommand_definition import ICommandDefinition
 from mecharmory.infrastructure.command.icommand_executor import ICommandExecutor
 

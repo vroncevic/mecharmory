@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from unittest import TestCase, main
 
-from mecharmory.infrastructure.gui.theme import ThemeManager
+from mecharmory.infrastructure.gui.theme.theme_manager import ThemeManager
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
