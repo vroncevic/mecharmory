@@ -24,6 +24,7 @@ from __future__ import annotations
 from queue import Queue, Empty
 from typing import Final
 from tkinter import BOTH, BOTTOM, TOP, X, Frame, Tk
+from tkinter.ttk import Notebook
 
 from mecharmory.core.model.communication.serial_message import SerialMessage
 from mecharmory.core.service.arm.iarm_controller_service import (
@@ -39,6 +40,7 @@ from mecharmory.infrastructure.gui.gui_window_style import GuiWindowStyle
 from mecharmory.infrastructure.gui.serial.serial_bar import SerialBar
 from mecharmory.infrastructure.gui.workspace.arm_workspace import ArmWorkspace
 from mecharmory.infrastructure.gui.console.console_panel import ConsolePanel
+from mecharmory.infrastructure.gui.dsl.mecha_editor_tab import MechaEditorTab
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -87,6 +89,7 @@ class GuiWindow:
     _mediator: GuiEventMediator
     _serial_bar: SerialBar
     _workspace: ArmWorkspace
+    _editor_tab: MechaEditorTab
     _console_panel: ConsolePanel
     _is_running: bool
 
@@ -182,13 +185,21 @@ class GuiWindow:
         self._console_panel = ConsolePanel(body, on_send=self._mediator.on_manual_command)
         self._console_panel.pack(fill=X, side=BOTTOM)
 
+        notebook = Notebook(body)
         self._workspace = ArmWorkspace(
-            body,
+            notebook,
             model=self._arm_service.get_model(),
             mediator=self._mediator,
             style=self._style
         )
-        self._workspace.pack(
+        self._editor_tab = MechaEditorTab(
+            notebook,
+            on_send_command=self._mediator.on_manual_command,
+            model=self._arm_service.get_model()
+        )
+        notebook.add(self._workspace, text='  🎮 Manual Workspace  ')
+        notebook.add(self._editor_tab, text='  📝 Mecha Script Editor  ')
+        notebook.pack(
             fill=BOTH,
             expand=True,
             side=TOP,
@@ -196,6 +207,14 @@ class GuiWindow:
         )
 
         self._root.protocol(self._style.protocol_delete_window, self.stop)
+
+    def get_editor_tab(self) -> MechaEditorTab:
+        '''
+            Returns internal MechaEditorTab reference.
+
+            :return: MechaEditorTab instance.
+        '''
+        return self._editor_tab
 
     def _bind_services(self) -> None:
         '''Binds background notification callbacks.'''

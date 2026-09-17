@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    mecharmory.core.service.arm
+   mecharmory.core.service.dsl
    mecharmory.core.service.firmware
    mecharmory.core.service.serial
    mecharmory.core.service.storage

@@ -10,6 +10,7 @@ Subpackages
    mecharmory.infrastructure.gui.arm
    mecharmory.infrastructure.gui.canvas
    mecharmory.infrastructure.gui.console
+   mecharmory.infrastructure.gui.dsl
    mecharmory.infrastructure.gui.joint
    mecharmory.infrastructure.gui.preset
    mecharmory.infrastructure.gui.serial

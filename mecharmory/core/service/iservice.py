@@ -26,6 +26,7 @@ from typing import Protocol, runtime_checkable
 from mecharmory.core.service.arm.iarm_controller_service import IArmControllerService
 from mecharmory.core.service.serial.iserial_service import ISerialService
 from mecharmory.core.service.storage.iarm_storage_service import IArmStorageService
+from mecharmory.core.service.dsl.imecha_dsl_service import IMechaDslService
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -77,4 +78,11 @@ class IService(Protocol):
             Returns active IArmStorageService instance.
 
             :return: IArmStorageService instance.
+        '''
+
+    def get_dsl_service(self) -> IMechaDslService:
+        '''
+            Returns active IMechaDslService instance.
+
+            :return: IMechaDslService instance.
         '''

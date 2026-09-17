@@ -9,6 +9,7 @@ Subpackages
 
    mecharmory.core.model.arm
    mecharmory.core.model.communication
+   mecharmory.core.model.dsl
    mecharmory.core.model.kinematics
    mecharmory.core.model.preset
 
