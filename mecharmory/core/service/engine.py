@@ -24,6 +24,7 @@ from __future__ import annotations
 from mecharmory.core.service.arm.iarm_controller_service import IArmControllerService
 from mecharmory.core.service.serial.iserial_service import ISerialService
 from mecharmory.core.service.storage.iarm_storage_service import IArmStorageService
+from mecharmory.core.service.dsl.mecha_dsl_service import MechaDslService
 
 __author__ = 'Vladimir Roncevic'
 __copyright__ = '(C) 2026, https://github.com/vroncevic/mecharmory'
@@ -45,23 +46,27 @@ class Service:
                 | _arm_service - IArmControllerService instance.
                 | _serial_service - ISerialService instance.
                 | _storage - IArmStorageService instance.
+                | _dsl_service - MechaDslService instance.
             :methods:
                 | __init__ - Initializes the composite service with injected abstractions.
                 | is_initialized - Confirms operational readiness of all sub-services.
                 | get_arm_service - Returns active IArmControllerService.
                 | get_serial_service - Returns active ISerialService.
                 | get_storage - Returns active IArmStorageService.
+                | get_dsl_service - Returns active MechaDslService.
     '''
 
     _arm_service: IArmControllerService
     _serial_service: ISerialService
     _storage: IArmStorageService
+    _dsl_service: MechaDslService
 
     def __init__(
         self,
         arm_service: IArmControllerService,
         serial_service: ISerialService,
-        storage: IArmStorageService
+        storage: IArmStorageService,
+        dsl_service: MechaDslService | None = None
     ) -> None:
         '''
             Initializes the composite service with injected abstractions.
@@ -69,10 +74,12 @@ class Service:
             :param arm_service: IArmControllerService instance.
             :param serial_service: ISerialService instance.
             :param storage: IArmStorageService instance.
+            :param dsl_service: Optional MechaDslService instance.
         '''
         self._arm_service = arm_service
         self._serial_service = serial_service
         self._storage = storage
+        self._dsl_service = dsl_service or MechaDslService()
 
     def is_initialized(self) -> bool:
         '''
@@ -112,3 +119,11 @@ class Service:
             :return: IArmStorageService instance.
         '''
         return self._storage
+
+    def get_dsl_service(self) -> MechaDslService:
+        '''
+            Returns active MechaDslService instance.
+
+            :return: MechaDslService instance.
+        '''
+        return self._dsl_service

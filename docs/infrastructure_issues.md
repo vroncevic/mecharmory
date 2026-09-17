@@ -21,6 +21,7 @@ This document tracks architectural evaluations, SOLID audits, and refactorings w
 | INFRA-010 | GUI Window | GuiWindow Modular Decomposition & ArmWorkspace Container | 🟢 RESOLVED | `mecharmory.infrastructure.gui` |
 | INFRA-011 | Communication & Storage | Protocol check_available_port, ats_utilities Loader/Storer, Singleton ContextBundle & Constant Cleanup | 🟢 RESOLVED | `mecharmory.infrastructure` |
 | INFRA-012 | GUI & Communication | Serial Telemetry Console Flooding Decoupling & 100ms Polling Optimization | 🟢 RESOLVED | `mecharmory.infrastructure.gui` |
+| INFRA-013 | GUI Script Editor | Integrated Mecha Script Editor Tab, Syntax Highlighter & Stream Runner | 🟢 RESOLVED | `mecharmory.infrastructure.gui.dsl` |
 
 ---
 
@@ -339,5 +340,36 @@ This document tracks architectural evaluations, SOLID audits, and refactorings w
   * [x] Verify visual GUI appearance and clean console log via screenshot capture.
   * [x] Validate that all 105 unit tests pass with zero errors.
 
-
-
+### 🟢 INFRA-013: Integrated Mecha Script Editor Tab, Syntax Highlighter & Async Stream Runner
+* **Affected Files:**
+  * `mecharmory/infrastructure/gui/dsl/imecha_editor_tab.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_syntax_highlighter.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_code_editor.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_console_view.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_document_manager.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_example_catalog.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_editor_toolbar.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_stream_runner.py`
+  * `mecharmory/infrastructure/gui/dsl/mecha_editor_tab.py`
+  * `mecharmory/infrastructure/gui/gui_window.py`
+* **Problem / Violation:**
+  * To automate robotic arm trajectories with the new `.mecha` DSL, an interactive editor, linter feedback panel, file management, and non-blocking serial execution pipeline were required.
+  * The GUI window required tabbed organization without exceeding module size constraints ($\le 250$ lines).
+* **Refactored Architecture:**
+  * Introduced `ttk.Notebook` in `GuiWindow` hosting `[ 🎮 Manual Workspace ]` and `[ 📝 Mecha Script Editor ]`.
+  * Modularized editor components into dedicated $< 250$ line classes:
+    * `MechaSyntaxHighlighter`: Catppuccin Mocha regex token tagger.
+    * `MechaCodeEditor`: Scrolled text editor with line numbers and cursor tracking.
+    * `MechaConsoleView`: Color-coded linter/compiler output console.
+    * `MechaDocumentManager`: File open/save/save-as handler.
+    * `MechaExampleCatalog`: Pre-bundled example scripts (*Pick and Place*, *Scan Workspace*, *Calibration*, *Tour*).
+    * `MechaEditorToolbar`: Action buttons for New, Open, Save, Examples, Lint, Compile, Run, and Stop.
+    * `MechaStreamRunner`: Background worker streaming compiled ASCII serial instructions sequentially without blocking Tkinter UI.
+    * `MechaEditorTab`: Composite controller implementing `IMechaEditorTab`.
+* **Execution Checklist:**
+  * [x] Define `IMechaEditorTab` structural protocol.
+  * [x] Implement syntax highlighter, editor widget, console view, and document manager.
+  * [x] Build example catalog and toolbar with Catppuccin styling.
+  * [x] Implement async streaming runner with abort control.
+  * [x] Assemble `MechaEditorTab` and embed in `GuiWindow` Notebook.
+  * [x] Add comprehensive unit tests and verify 100% quality gate compliance.
